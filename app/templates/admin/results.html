@@ -28,20 +28,17 @@
     <a href="/admin/survey/{{ survey.id }}/export.csv{% if selected_class %}?class_name={{ selected_class }}{% endif %}"
        class="btn btn-secondary btn-sm">{{ t("admin.results.export_csv") }}</a>
     {% if user.is_admin %}
-      {% if survey.share_token %}
-      <a href="{{ request.url_for('public_results', token=survey.share_token) }}"
-         target="_blank" class="btn btn-sm btn-secondary">Öffentlicher Link</a>
-      <form method="post" action="/admin/survey/{{ survey.id }}/share/revoke" style="display:inline"
-            onsubmit="return confirm('Link deaktivieren?')">
-        <input type="hidden" name="csrf_token" value="{{ csrf }}">
-        <button class="btn btn-sm btn-danger">Link deaktivieren</button>
-      </form>
-      {% else %}
-      <form method="post" action="/admin/survey/{{ survey.id }}/share/create" style="display:inline">
-        <input type="hidden" name="csrf_token" value="{{ csrf }}">
-        <button class="btn btn-sm btn-primary">Link freigeben</button>
-      </form>
+      {% if grants %}
+        {% for g in grants %}
+        <a href="{{ request.url_for('public_results', token=g.token) }}"
+           target="_blank" class="btn btn-sm btn-secondary">
+          {{ "Gesamt" if g.scope == "all" else "Kl. " + g.scope }}
+        </a>
+        {% endfor %}
       {% endif %}
+      <a href="/admin/survey/{{ survey.id }}#freigabe" class="btn btn-sm btn-secondary">
+        Links verwalten
+      </a>
     {% endif %}
   </div>
 </div>

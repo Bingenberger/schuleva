@@ -251,6 +251,10 @@ async def survey_detail(request: Request, survey_id: int):
                 "used_tans": used,
                 "responses": resp,
             })
+        grants = [dict(g) for g in conn.execute(
+            "SELECT * FROM share_grants WHERE survey_id = ? ORDER BY created_at",
+            (survey_id,),
+        ).fetchall()]
     finally:
         conn.close()
 
@@ -260,6 +264,7 @@ async def survey_detail(request: Request, survey_id: int):
         {
             "survey": dict(survey),
             "class_stats": class_stats,
+            "grants": grants,
             "user": user,
             "csrf": csrf,
         },
@@ -494,6 +499,10 @@ async def results_view(request: Request, survey_id: int, class_name: str | None 
             "SELECT name FROM classes WHERE survey_id = ? ORDER BY name", (survey_id,)
         ).fetchall()
         class_names = [c["name"] for c in classes]
+        grants = [dict(g) for g in conn.execute(
+            "SELECT * FROM share_grants WHERE survey_id = ? ORDER BY created_at",
+            (survey_id,),
+        ).fetchall()]
     finally:
         conn.close()
 
@@ -512,6 +521,7 @@ async def results_view(request: Request, survey_id: int, class_name: str | None 
             "class_names": class_names,
             "selected_class": class_name,
             "filter_label": filter_label,
+            "grants": grants,
             "user": user,
             "csrf": csrf,
         },

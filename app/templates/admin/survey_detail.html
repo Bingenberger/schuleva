@@ -139,23 +139,51 @@
 
 {% if user.is_admin %}
 <section class="admin-section">
-  <h3>Öffentlicher Ergebnislink</h3>
-  {% if survey.share_token %}
-  <div class="share-link-box">
-    <input class="field-input share-link-input" readonly
-           value="{{ request.url_for('public_results', token=survey.share_token) }}">
-    <a href="{{ request.url_for('public_results', token=survey.share_token) }}"
-       target="_blank" class="btn btn-sm btn-secondary">Öffnen</a>
+  <h3>Freigabelinks</h3>
+
+  {% if grants %}
+  <div class="grants-list">
+    {% for g in grants %}
+    {% set gurl = request.url_for('public_results', token=g.token) %}
+    <div class="grant-row">
+      <span class="grant-scope-badge">
+        {{ "Schule gesamt" if g.scope == "all" else "Klasse " + g.scope }}
+      </span>
+      <input class="field-input share-link-input" readonly value="{{ gurl }}"
+             onclick="this.select()">
+      <a href="{{ gurl }}" target="_blank" class="btn btn-sm btn-secondary">Öffnen</a>
+      <form method="post"
+            action="/admin/survey/{{ survey.id }}/share/revoke/{{ g.id }}"
+            onsubmit="return confirm('Diesen Link deaktivieren?')"
+            style="display:inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <input type="hidden" name="redirect_to" value="detail">
+        <button class="btn btn-sm btn-danger">&#x2715;</button>
+      </form>
+    </div>
+    {% endfor %}
   </div>
-  <form method="post" action="/admin/survey/{{ survey.id }}/share/revoke"
-        onsubmit="return confirm('Link deaktivieren?')" style="margin-top:0.5rem">
-    <input type="hidden" name="csrf_token" value="{{ csrf }}">
-    <button type="submit" class="btn btn-sm btn-danger">Link deaktivieren</button>
-  </form>
   {% else %}
-  <p class="field-hint">Noch kein öffentlicher Link erstellt.</p>
-  <form method="post" action="/admin/survey/{{ survey.id }}/share/create">
+  <p class="field-hint">Noch keine Freigabelinks erstellt.</p>
+  {% endif %}
+
+  {% set existing_scopes = grants | map(attribute='scope') | list %}
+  {% set available = [] %}
+  {% if "all" not in existing_scopes %}{% set _ = available.append(("all", "Schule gesamt")) %}{% endif %}
+  {% for c in class_stats %}
+    {% if c.name not in existing_scopes %}{% set _ = available.append((c.name, "Klasse " + c.name)) %}{% endif %}
+  {% endfor %}
+
+  {% if available %}
+  <form method="post" action="/admin/survey/{{ survey.id }}/share/grant"
+        class="inline-form" style="margin-top:0.75rem">
     <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <input type="hidden" name="redirect_to" value="detail">
+    <select name="scope" class="field-select field-select-sm">
+      {% for val, label in available %}
+      <option value="{{ val }}">{{ label }}</option>
+      {% endfor %}
+    </select>
     <button type="submit" class="btn btn-primary">Link erstellen</button>
   </form>
   {% endif %}

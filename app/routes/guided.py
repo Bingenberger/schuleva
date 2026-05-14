@@ -353,15 +353,26 @@ async def _send_teacher(session: GuidedSession, msg: dict) -> None:
 async def public_results(request: Request, token: str, class_name: str | None = None):
     conn = get_db()
     try:
+        grant = conn.execute(
+            "SELECT * FROM share_grants WHERE token = ?", (token,)
+        ).fetchone()
+        if grant is None:
+            raise HTTPException(404, "Dieser Link ist ungültig oder wurde deaktiviert.")
         survey = conn.execute(
-            "SELECT * FROM surveys WHERE share_token = ?", (token,)
+            "SELECT * FROM surveys WHERE id = ?", (grant["survey_id"],)
         ).fetchone()
         if survey is None:
-            raise HTTPException(404, "Dieser Link ist ungültig oder wurde deaktiviert.")
-        classes = conn.execute(
-            "SELECT name FROM classes WHERE survey_id = ? ORDER BY name", (survey["id"],)
-        ).fetchall()
-        class_names = [c["name"] for c in classes]
+            raise HTTPException(404)
+
+        if grant["scope"] == "all":
+            classes = conn.execute(
+                "SELECT name FROM classes WHERE survey_id = ? ORDER BY name", (survey["id"],)
+            ).fetchall()
+            class_names = [c["name"] for c in classes]
+            active_class = class_name
+        else:
+            class_names = [grant["scope"]]
+            active_class = grant["scope"]
     finally:
         conn.close()
 
@@ -370,15 +381,20 @@ async def public_results(request: Request, token: str, class_name: str | None = 
         raise HTTPException(404)
     questionnaire = json.loads(q_path.read_text(encoding="utf-8"))
 
-    eval_result = evaluate_survey(survey["id"], questionnaire, class_name)
-    filter_label = class_name if class_name else "Schule gesamt"
+    eval_result = evaluate_survey(survey["id"], questionnaire, active_class)
+
+    if grant["scope"] == "all":
+        filter_label = class_name if class_name else "Schule gesamt"
+    else:
+        filter_label = f"Klasse {grant['scope']}"
 
     return templates.TemplateResponse(request, "ergebnisse.html", {
         "survey": dict(survey),
         "eval_result": eval_result,
         "questionnaire": questionnaire,
-        "class_names": class_names,
-        "selected_class": class_name,
+        "class_names": class_names if grant["scope"] == "all" else [],
+        "selected_class": active_class if grant["scope"] == "all" else None,
         "filter_label": filter_label,
+        "grant_scope": grant["scope"],
         "token": token,
     })

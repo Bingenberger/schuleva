@@ -57,9 +57,19 @@ CREATE TABLE IF NOT EXISTS responses (
     payload_json TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS share_grants (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    survey_id INTEGER NOT NULL REFERENCES surveys(id) ON DELETE CASCADE,
+    scope TEXT NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    created_at TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_responses_survey ON responses(survey_id);
 CREATE INDEX IF NOT EXISTS idx_responses_class ON responses(class_name);
 CREATE INDEX IF NOT EXISTS idx_tans_code ON tans(code);
+CREATE INDEX IF NOT EXISTS idx_share_grants_token ON share_grants(token);
+CREATE INDEX IF NOT EXISTS idx_share_grants_survey ON share_grants(survey_id);
 """
 
 
@@ -108,10 +118,22 @@ def migrate_db() -> None:
             """)
             conn.commit()
 
-        # 2. Add share_token to surveys (nullable, unique)
-        cols = [r["name"] for r in conn.execute("PRAGMA table_info(surveys)")]
-        if "share_token" not in cols:
-            conn.execute("ALTER TABLE surveys ADD COLUMN share_token TEXT")
+        # 2. Create share_grants table if missing (replaces surveys.share_token)
+        tables = {r["name"] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        )}
+        if "share_grants" not in tables:
+            conn.execute("""
+                CREATE TABLE share_grants (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    survey_id INTEGER NOT NULL REFERENCES surveys(id) ON DELETE CASCADE,
+                    scope TEXT NOT NULL,
+                    token TEXT UNIQUE NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+            """)
+            conn.execute("CREATE INDEX idx_share_grants_token ON share_grants(token)")
+            conn.execute("CREATE INDEX idx_share_grants_survey ON share_grants(survey_id)")
             conn.commit()
     finally:
         conn.close()

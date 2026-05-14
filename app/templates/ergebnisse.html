@@ -5,85 +5,222 @@
 {% block content %}
 <header class="pub-header">
   <div class="pub-header-inner">
-    <h1 class="pub-title">{{ survey.title }}</h1>
-    <span class="pub-meta">{{ survey.starts_at[:10] }} – {{ survey.ends_at[:10] }}</span>
+    <div class="pub-header-top">
+      <div>
+        <h1 class="pub-title">{{ survey.title }}</h1>
+        <span class="pub-meta">{{ survey.starts_at[:10] }} – {{ survey.ends_at[:10] }} · {{ filter_label }}</span>
+      </div>
+      <div class="pub-view-toggle">
+        <button id="btn-list" class="pub-toggle-btn active" onclick="setView('list')">Liste</button>
+        <button id="btn-slides" class="pub-toggle-btn" onclick="setView('slides')">Präsentation</button>
+      </div>
+    </div>
+
+    {% if class_names %}
+    <nav class="pub-filter">
+      <a href="?{% if selected_class %}{% endif %}"
+         class="pub-filter-btn {% if not selected_class %}active{% endif %}">Schule gesamt</a>
+      {% for cn in class_names %}
+      <a href="?class_name={{ cn }}"
+         class="pub-filter-btn {% if selected_class == cn %}active{% endif %}">Klasse {{ cn }}</a>
+      {% endfor %}
+    </nav>
+    {% endif %}
   </div>
 </header>
 
-<main class="pub-main">
-
-  <!-- Klassenfilter -->
-  {% if class_names %}
-  <div class="pub-filter">
-    <a href="?{% if selected_class %}{% endif %}"
-       class="pub-filter-btn {% if not selected_class %}active{% endif %}">Schule gesamt</a>
-    {% for cn in class_names %}
-    <a href="?class_name={{ cn }}"
-       class="pub-filter-btn {% if selected_class == cn %}active{% endif %}">Klasse {{ cn }}</a>
-    {% endfor %}
-  </div>
-  {% endif %}
-
+<!-- ── List view ──────────────────────────────────────────────────────────── -->
+<main id="view-list" class="pub-main">
   <p class="pub-summary">
     <strong>{{ eval_result.total_responses }} Rückmeldungen</strong>
-    · {{ filter_label }}
   </p>
 
   {% if eval_result.total_responses == 0 %}
   <p class="empty-state">Noch keine Antworten vorhanden.</p>
   {% else %}
-
   {% for section in eval_result.sections %}
   <section class="pub-section">
     <h2 class="pub-section-title">{{ section.title }}</h2>
-
     {% for q in section.questions %}
-    <div class="pub-question">
-      <p class="pub-q-text">{{ q.text }}</p>
-
-      {% if q.type in ("scale", "single_choice", "conditional") %}
-        {% set stats = q.stats %}
-        {% if stats.total > 0 %}
-        <div class="pub-bar-chart">
-          {% for opt in stats.options %}
-          {% set pct = stats.percents[opt.value] %}
-          {% set cnt = stats.counts[opt.value] %}
-          <div class="pub-bar-row">
-            <span class="pub-bar-label">{{ opt.label }}</span>
-            <div class="pub-bar-track">
-              <div class="pub-bar-fill" style="width:{{ pct }}%">
-                {% if pct >= 8 %}<span class="pub-bar-pct">{{ pct }}%</span>{% endif %}
-              </div>
-            </div>
-            <span class="pub-bar-count">{{ cnt }}</span>
-          </div>
-          {% endfor %}
-          <p class="pub-n">n = {{ stats.total }}</p>
-        </div>
-        {% else %}
-        <p class="pub-n">Keine Antworten.</p>
-        {% endif %}
-
-      {% elif q.type == "text" %}
-        {% if q.freitexte %}
-        <ul class="pub-freitext-list">
-          {% for text in q.freitexte %}
-          <li>{{ text }}</li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <p class="pub-n">Keine Antworten.</p>
-        {% endif %}
-      {% endif %}
-    </div>
+    {{ _render_question(q) }}
     {% endfor %}
   </section>
   {% endfor %}
-
   {% endif %}
 </main>
+
+<!-- ── Slide/presentation view ───────────────────────────────────────────── -->
+<div id="view-slides" class="pub-slides-wrap" style="display:none">
+  <div class="pub-slide-header">
+    <span class="pub-slide-counter" id="slide-counter">1 / 1</span>
+    <span class="pub-slide-section" id="slide-section"></span>
+    <button class="pub-fullscreen-btn" id="btn-fullscreen" title="Vollbild" onclick="toggleFullscreen()">⛶</button>
+  </div>
+
+  <div class="pub-slides-viewport" id="slides-viewport">
+    {% set ns = namespace(idx=0) %}
+    {% for section in eval_result.sections %}
+      {% for q in section.questions %}
+      {% set ns.idx = ns.idx + 1 %}
+      <div class="pub-slide" data-section="{{ section.title }}" data-idx="{{ ns.idx }}">
+        <div class="pub-slide-inner">
+          <p class="pub-slide-q-text">{{ q.text }}</p>
+          {% if q.type in ("scale", "single_choice", "conditional") %}
+            {% set stats = q.stats %}
+            {% if stats.total > 0 %}
+            <div class="pub-bar-chart pub-slide-chart">
+              {% for opt in stats.options %}
+              {% set pct = stats.percents[opt.value] %}
+              {% set cnt = stats.counts[opt.value] %}
+              <div class="pub-bar-row">
+                <span class="pub-bar-label">{{ opt.label }}</span>
+                <div class="pub-bar-track">
+                  <div class="pub-bar-fill" style="width:{{ pct }}%">
+                    {% if pct >= 8 %}<span class="pub-bar-pct">{{ pct }}%</span>{% endif %}
+                  </div>
+                </div>
+                <span class="pub-bar-count">{{ cnt }}</span>
+              </div>
+              {% endfor %}
+              <p class="pub-n">n = {{ stats.total }}</p>
+            </div>
+            {% else %}
+            <p class="pub-n">Keine Antworten.</p>
+            {% endif %}
+          {% elif q.type == "text" %}
+            {% if q.freitexte %}
+            <ul class="pub-freitext-list">
+              {% for text in q.freitexte %}
+              <li>{{ text }}</li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p class="pub-n">Keine Antworten.</p>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <div class="pub-slide-nav">
+    <button class="pub-slide-btn" id="btn-prev" onclick="prevSlide()">&#8592;</button>
+    <div class="pub-slide-dots" id="slide-dots"></div>
+    <button class="pub-slide-btn" id="btn-next" onclick="nextSlide()">&#8594;</button>
+  </div>
+</div>
 
 <footer class="pub-footer">
   {{ t("app.title") }}
 </footer>
+{% endblock %}
+
+{% macro _render_question(q) %}
+<div class="pub-question">
+  <p class="pub-q-text">{{ q.text }}</p>
+  {% if q.type in ("scale", "single_choice", "conditional") %}
+    {% set stats = q.stats %}
+    {% if stats.total > 0 %}
+    <div class="pub-bar-chart">
+      {% for opt in stats.options %}
+      {% set pct = stats.percents[opt.value] %}
+      {% set cnt = stats.counts[opt.value] %}
+      <div class="pub-bar-row">
+        <span class="pub-bar-label">{{ opt.label }}</span>
+        <div class="pub-bar-track">
+          <div class="pub-bar-fill" style="width:{{ pct }}%">
+            {% if pct >= 8 %}<span class="pub-bar-pct">{{ pct }}%</span>{% endif %}
+          </div>
+        </div>
+        <span class="pub-bar-count">{{ cnt }}</span>
+      </div>
+      {% endfor %}
+      <p class="pub-n">n = {{ stats.total }}</p>
+    </div>
+    {% else %}
+    <p class="pub-n">Keine Antworten.</p>
+    {% endif %}
+  {% elif q.type == "text" %}
+    {% if q.freitexte %}
+    <ul class="pub-freitext-list">
+      {% for text in q.freitexte %}
+      <li>{{ text }}</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="pub-n">Keine Antworten.</p>
+    {% endif %}
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% block scripts %}
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll('.pub-slide'));
+  let current = 0;
+
+  function buildDots() {
+    const container = document.getElementById('slide-dots');
+    container.innerHTML = '';
+    slides.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'pub-dot' + (i === 0 ? ' active' : '');
+      d.setAttribute('aria-label', 'Frage ' + (i + 1));
+      d.onclick = () => goTo(i);
+      container.appendChild(d);
+    });
+  }
+
+  function goTo(idx) {
+    slides[current].classList.remove('active');
+    document.querySelectorAll('.pub-dot')[current]?.classList.remove('active');
+    current = Math.max(0, Math.min(idx, slides.length - 1));
+    slides[current].classList.add('active');
+    document.querySelectorAll('.pub-dot')[current]?.classList.add('active');
+    document.getElementById('slide-counter').textContent =
+      (current + 1) + ' / ' + slides.length;
+    document.getElementById('slide-section').textContent =
+      slides[current].dataset.section || '';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === slides.length - 1;
+  }
+
+  window.nextSlide = () => goTo(current + 1);
+  window.prevSlide = () => goTo(current - 1);
+
+  window.setView = function(mode) {
+    const isList = mode === 'list';
+    document.getElementById('view-list').style.display = isList ? '' : 'none';
+    document.getElementById('view-slides').style.display = isList ? 'none' : '';
+    document.getElementById('btn-list').classList.toggle('active', isList);
+    document.getElementById('btn-slides').classList.toggle('active', !isList);
+    if (!isList) goTo(current);
+  };
+
+  window.toggleFullscreen = function() {
+    const el = document.getElementById('view-slides');
+    if (!document.fullscreenElement) {
+      el.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+  };
+
+  document.addEventListener('keydown', function(e) {
+    const slidesVisible = document.getElementById('view-slides').style.display !== 'none';
+    if (!slidesVisible) return;
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+    if (e.key === 'Escape' && document.fullscreenElement) document.exitFullscreen();
+  });
+
+  buildDots();
+  if (slides.length > 0) {
+    slides[0].classList.add('active');
+    goTo(0);
+  }
+})();
+</script>
 {% endblock %}

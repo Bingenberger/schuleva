@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Form, Request, HTTPException
 from fastapi.responses import RedirectResponse, Response, StreamingResponse
 
@@ -203,32 +205,68 @@ async def tans_csv(request: Request, survey_id: int, class_name: str | None = No
     )
 
 
-# ── Share token (public results link) ────────────────────────────────────────
+# ── Share grants (public results links) ──────────────────────────────────────
 
-@router.post("/survey/{survey_id}/share/create")
-async def share_create(request: Request, survey_id: int, csrf_token: str = Form(...)):
+@router.post("/survey/{survey_id}/share/grant")
+async def share_grant_create(
+    request: Request,
+    survey_id: int,
+    scope: str = Form(...),
+    csrf_token: str = Form(...),
+    redirect_to: str = Form("results"),
+):
     from app.auth import validate_csrf
     require_admin(request)
     validate_csrf(request, csrf_token)
-    token = _secrets.token_urlsafe(24)
+
     conn = get_db()
     try:
-        conn.execute("UPDATE surveys SET share_token = ? WHERE id = ?", (token, survey_id))
-        conn.commit()
+        survey = conn.execute("SELECT id FROM surveys WHERE id = ?", (survey_id,)).fetchone()
+        if survey is None:
+            raise HTTPException(404)
+        existing = conn.execute(
+            "SELECT id FROM share_grants WHERE survey_id = ? AND scope = ?",
+            (survey_id, scope),
+        ).fetchone()
+        if existing is None:
+            token = _secrets.token_urlsafe(24)
+            now = datetime.now(timezone.utc).isoformat()
+            conn.execute(
+                "INSERT INTO share_grants (survey_id, scope, token, created_at) VALUES (?,?,?,?)",
+                (survey_id, scope, token, now),
+            )
+            conn.commit()
     finally:
         conn.close()
-    return RedirectResponse(f"/admin/survey/{survey_id}/results", status_code=303)
+
+    target = "results" if redirect_to == "results" else "detail"
+    if target == "results":
+        return RedirectResponse(f"/admin/survey/{survey_id}/results", status_code=303)
+    return RedirectResponse(f"/admin/survey/{survey_id}", status_code=303)
 
 
-@router.post("/survey/{survey_id}/share/revoke")
-async def share_revoke(request: Request, survey_id: int, csrf_token: str = Form(...)):
+@router.post("/survey/{survey_id}/share/revoke/{grant_id}")
+async def share_grant_revoke(
+    request: Request,
+    survey_id: int,
+    grant_id: int,
+    csrf_token: str = Form(...),
+    redirect_to: str = Form("results"),
+):
     from app.auth import validate_csrf
     require_admin(request)
     validate_csrf(request, csrf_token)
+
     conn = get_db()
     try:
-        conn.execute("UPDATE surveys SET share_token = NULL WHERE id = ?", (survey_id,))
+        conn.execute(
+            "DELETE FROM share_grants WHERE id = ? AND survey_id = ?",
+            (grant_id, survey_id),
+        )
         conn.commit()
     finally:
         conn.close()
+
+    if redirect_to == "detail":
+        return RedirectResponse(f"/admin/survey/{survey_id}", status_code=303)
     return RedirectResponse(f"/admin/survey/{survey_id}/results", status_code=303)
