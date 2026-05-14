@@ -195,15 +195,22 @@ function renderQuestion(s) {
   // Scale / options display
   const scaleEl = document.getElementById('scale-display');
   scaleEl.innerHTML = '';
-  const opts = q.type === 'scale'
-    ? (s.scale.options || [])
-    : (q.options || []);
-  opts.forEach((opt, i) => {
-    const span = document.createElement('span');
-    span.className = 'guided-scale-option' + (q.type === 'scale' ? ` guided-scale-opt-${i}` : '');
-    span.textContent = opt.label;
-    scaleEl.appendChild(span);
-  });
+  if (q.type === 'text') {
+    const note = document.createElement('span');
+    note.className = 'guided-text-q-note';
+    note.textContent = '✏️ Freitextfrage' + (q.optional ? ' (optional)' : '');
+    scaleEl.appendChild(note);
+  } else {
+    const opts = q.type === 'scale'
+      ? (s.scale.options || [])
+      : (q.options || []);
+    opts.forEach((opt, i) => {
+      const span = document.createElement('span');
+      span.className = 'guided-scale-option' + (q.type === 'scale' ? ` guided-scale-opt-${i}` : '');
+      span.textContent = opt.label;
+      scaleEl.appendChild(span);
+    });
+  }
 
   // Buttons
   const unlocked = s.unlocked;

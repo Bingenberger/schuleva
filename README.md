@@ -495,11 +495,27 @@ sudo apt install libpango-1.0-0 libpangoft2-1.0-0 libcairo2 libgdk-pixbuf2.0-0
 - Liegt `ends_at` in der Zukunft?
 - TAN noch nicht verwendet? (Jede TAN ist Einwegcode)
 
-**Geführter Modus – Schülerinnen und Schüler können nicht verbinden**
+**Geführter Modus – Schülerinnen und Schüler können nicht verbinden / „Verbindung unterbrochen"**
 
-- App mit `--host 0.0.0.0` starten oder über nginx erreichbar machen.
+Der häufigste Grund ist eine fehlende WebSocket-Konfiguration in nginx. Im `location /`-Block müssen diese Zeilen stehen:
+
+```nginx
+proxy_http_version 1.1;
+proxy_set_header   Upgrade $http_upgrade;
+proxy_set_header   Connection "upgrade";
+proxy_read_timeout 300;
+```
+
+Ohne `Upgrade`/`Connection` bricht nginx die Verbindung sofort nach dem Handshake ab. Danach nginx neu laden:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Weitere mögliche Ursachen:
+- App nicht mit `--host 0.0.0.0` gestartet (bei LAN-Betrieb ohne nginx)?
 - Alle Geräte im selben Netzwerk?
-- WebSocket-Verbindungen durch nginx durchgeleitet? (`proxy_read_timeout` mind. 60 s, besser 300 s für lange Sitzungen)
+- Firewall blockiert Port 80/443?
 
 **Session läuft unerwartet ab**
 

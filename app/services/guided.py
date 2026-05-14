@@ -26,7 +26,7 @@ class GuidedSession:
     survey_id: int
     class_name: str
     questionnaire: dict
-    questions: list[dict]   # flattened non-text questions (each has _section_title)
+    questions: list[dict]   # flattened questions (each has _section_title)
     scale: dict
 
     teacher_ws: Optional[Any] = None
@@ -45,8 +45,7 @@ def create_session(survey_id: int, class_name: str, questionnaire: dict) -> Guid
     questions: list[dict] = []
     for sec in questionnaire.get("sections", []):
         for q in sec.get("questions", []):
-            if q.get("type") != "text":
-                questions.append({**q, "_section_title": sec.get("title", "")})
+            questions.append({**q, "_section_title": sec.get("title", "")})
 
     session_id = _gen_code(6)
     while session_id in _sessions:

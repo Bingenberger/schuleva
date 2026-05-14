@@ -1440,6 +1440,38 @@ a:hover { text-decoration: underline; }
   font-family: "Grundschrift", var(--font-body);
   font-size: 1.1rem;
 }
+.guided-student-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.guided-student-textarea {
+  width: 100%;
+  min-height: 7rem;
+  padding: 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  background: var(--color-bg);
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+.guided-student-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.guided-student-text-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+.guided-text-q-note {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  font-style: italic;
+}
 .guided-student-answered {
   text-align: center;
   color: var(--color-success);

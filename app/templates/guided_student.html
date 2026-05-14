@@ -36,6 +36,18 @@
       <!-- OPTIONS (scale / single_choice) -->
       <div id="s-options" class="guided-student-options" style="display:none;"></div>
 
+      <!-- TEXT INPUT -->
+      <div id="s-text" class="guided-student-text-wrap" style="display:none;">
+        <textarea id="s-textarea" class="guided-student-textarea"
+                  placeholder="Hier tippen …" rows="4"></textarea>
+        <div class="guided-student-text-actions">
+          <button id="s-text-submit" class="btn btn-primary"
+                  onclick="submitText()">Absenden</button>
+          <button id="s-text-skip" class="btn btn-secondary"
+                  onclick="skipText()" style="display:none;">Überspringen</button>
+        </div>
+      </div>
+
       <!-- ANSWERED -->
       <div id="s-answered" class="guided-student-answered" style="display:none;">
         <div class="guided-student-check">✓</div>
@@ -114,6 +126,7 @@ function renderQuestion(msg) {
 function showLocked() {
   document.getElementById('s-locked').style.display   = '';
   document.getElementById('s-options').style.display  = 'none';
+  document.getElementById('s-text').style.display     = 'none';
   document.getElementById('s-answered').style.display = 'none';
 }
 
@@ -121,11 +134,26 @@ function showOptions() {
   document.getElementById('s-locked').style.display   = 'none';
   document.getElementById('s-answered').style.display = 'none';
 
+  if (!currentQ) return;
+
+  if (currentQ.type === 'text') {
+    document.getElementById('s-options').style.display = 'none';
+    const wrap = document.getElementById('s-text');
+    const ta   = document.getElementById('s-textarea');
+    ta.value   = '';
+    ta.disabled = false;
+    document.getElementById('s-text-submit').disabled = false;
+    document.getElementById('s-text-skip').style.display =
+      currentQ.optional ? '' : 'none';
+    wrap.style.display = '';
+    ta.focus();
+    return;
+  }
+
+  document.getElementById('s-text').style.display = 'none';
   const container = document.getElementById('s-options');
   container.innerHTML = '';
   container.style.display = '';
-
-  if (!currentQ) return;
 
   const opts = currentQ.type === 'scale'
     ? (currentScale && currentScale.options || [])
@@ -143,18 +171,34 @@ function showOptions() {
 }
 
 function submitAnswer(qId, value, clickedBtn, container) {
-  // Visual feedback
   container.querySelectorAll('.guided-answer-btn').forEach(b => b.disabled = true);
   clickedBtn.classList.add('selected');
-
-  if (ws && ws.readyState === WebSocket.OPEN) {
+  if (ws && ws.readyState === WebSocket.OPEN)
     ws.send(JSON.stringify({ type: 'answer', q_id: qId, value: value }));
-  }
+}
+
+function submitText() {
+  const ta    = document.getElementById('s-textarea');
+  const value = ta.value.trim();
+  ta.disabled = true;
+  document.getElementById('s-text-submit').disabled = true;
+  document.getElementById('s-text-skip').disabled   = true;
+  if (ws && ws.readyState === WebSocket.OPEN)
+    ws.send(JSON.stringify({ type: 'answer', q_id: currentQ.id, value: value }));
+}
+
+function skipText() {
+  document.getElementById('s-textarea').disabled        = true;
+  document.getElementById('s-text-submit').disabled     = true;
+  document.getElementById('s-text-skip').disabled       = true;
+  if (ws && ws.readyState === WebSocket.OPEN)
+    ws.send(JSON.stringify({ type: 'answer', q_id: currentQ.id, value: '' }));
 }
 
 function showAnswered() {
   document.getElementById('s-locked').style.display   = 'none';
   document.getElementById('s-options').style.display  = 'none';
+  document.getElementById('s-text').style.display     = 'none';
   document.getElementById('s-answered').style.display = '';
 }
 

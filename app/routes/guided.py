@@ -221,10 +221,13 @@ async def _handle_student_msg(
     q = session.questions[session.q_idx]
     q_id = msg.get("q_id", "")
     value = msg.get("value", "")
-    if q_id != q["id"] or not value:
+    if q_id != q["id"]:
+        return
+    if not value and q.get("type") != "text":
         return
 
-    student.answers[q_id] = value
+    if value:  # don't store empty strings (skipped optional text questions)
+        student.answers[q_id] = value
     student.answered_current = True
 
     answered = sum(1 for s in session.students.values() if s.answered_current)
