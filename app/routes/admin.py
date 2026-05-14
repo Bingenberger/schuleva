@@ -354,8 +354,10 @@ async def delete_survey(
 
     conn = get_db()
     try:
-        # FK CASCADE deletes classes, tans; responses have no FK cascade, delete manually
+        # tans and responses have no ON DELETE CASCADE → delete manually first
+        conn.execute("DELETE FROM tans WHERE survey_id = ?", (survey_id,))
         conn.execute("DELETE FROM responses WHERE survey_id = ?", (survey_id,))
+        # CASCADE handles: classes, share_grants
         conn.execute("DELETE FROM surveys WHERE id = ?", (survey_id,))
         conn.commit()
     finally:
