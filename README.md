@@ -182,6 +182,7 @@ schulbefragung/
 |---|---|---|
 | `SECRET_KEY` | **Ja** | Zufälliger Schlüssel für Session-Signaturen (min. 32 Zeichen) |
 | `INITIAL_ADMIN_PASSWORD` | Empfohlen | Passwort für den ersten Admin-Account (`admin`); nur beim ersten Start wirksam |
+| `SCHOOL_DOMAIN` | Empfohlen | Domain der App (z.B. `befragung.meine-schule.de`); erscheint im Text und QR-Code der TAN-PDFs |
 | `DATABASE_PATH` | Nein | Pfad zur SQLite-Datei (Standard: `data/db.sqlite`) |
 
 Sicherer `SECRET_KEY` erzeugen:
@@ -240,10 +241,13 @@ Konfigurationsdatei anlegen:
 cat > /opt/schulbefragung/.env << 'EOF'
 SECRET_KEY=HIER-EINEN-ZUFALLSSCHLUESSEL-EINTRAGEN
 INITIAL_ADMIN_PASSWORD=HIER-EIN-SICHERES-PASSWORT-EINTRAGEN
+SCHOOL_DOMAIN=befragung.meine-schule.de
 DATABASE_PATH=data/db.sqlite
 EOF
 chmod 600 /opt/schulbefragung/.env
 ```
+
+`SCHOOL_DOMAIN` bestimmt die Adresse, die in den ausgedruckten TAN-Zetteln (Text und QR-Code) erscheint. Bitte die eigene Domain eintragen, damit Eltern und Kinder zur richtigen Adresse geführt werden.
 
 Den `SECRET_KEY` mit folgendem Befehl generieren:
 

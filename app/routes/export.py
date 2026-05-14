@@ -42,6 +42,27 @@ def _get_survey_and_questionnaire(survey_id: int) -> tuple[Any, dict[str, Any]]:
 
 # ── TAN PDF ──────────────────────────────────────────────────────────────────
 
+def _pdf_response(pdf_bytes: bytes, filename: str) -> Response:
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+def _weasyprint_error(exc: Exception) -> HTTPException:
+    msg = str(exc)
+    if "pango" in msg.lower() or "cairo" in msg.lower() or "OSError" in type(exc).__name__:
+        detail = (
+            "PDF-Erzeugung fehlgeschlagen: fehlende Systembibliothek. "
+            "Auf dem Server bitte ausführen: "
+            "sudo apt install libpango-1.0-0 libpangoft2-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0"
+        )
+    else:
+        detail = f"PDF-Erzeugung fehlgeschlagen: {msg}"
+    return HTTPException(status_code=500, detail=detail)
+
+
 @router.get("/survey/{survey_id}/tans.pdf")
 async def tans_pdf(request: Request, survey_id: int, class_name: str | None = None):
     require_login(request)
@@ -79,13 +100,12 @@ async def tans_pdf(request: Request, survey_id: int, class_name: str | None = No
     if not class_tans:
         raise HTTPException(404, "Keine unbenutzten TANs gefunden")
 
-    pdf_bytes = generate_tan_pdf_bytes(survey["title"], class_tans)
+    try:
+        pdf_bytes = generate_tan_pdf_bytes(survey["title"], class_tans)
+    except Exception as exc:
+        raise _weasyprint_error(exc)
     filename = f"TANs_{survey['title'].replace(' ', '_')}.pdf"
-    return Response(
-        content=pdf_bytes,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-    )
+    return _pdf_response(pdf_bytes, filename)
 
 
 # ── Results PDF ──────────────────────────────────────────────────────────────
@@ -99,15 +119,14 @@ async def results_pdf(request: Request, survey_id: int, class_name: str | None =
     filter_label = class_name if class_name else "Schule gesamt"
     period = f"{survey['starts_at'][:10]} – {survey['ends_at'][:10]}"
 
-    pdf_bytes = generate_report_pdf_bytes(
-        survey["title"], period, filter_label, eval_result
-    )
+    try:
+        pdf_bytes = generate_report_pdf_bytes(
+            survey["title"], period, filter_label, eval_result
+        )
+    except Exception as exc:
+        raise _weasyprint_error(exc)
     filename = f"Auswertung_{survey['title'].replace(' ', '_')}.pdf"
-    return Response(
-        content=pdf_bytes,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-    )
+    return _pdf_response(pdf_bytes, filename)
 
 
 # ── CSV Export ───────────────────────────────────────────────────────────────
