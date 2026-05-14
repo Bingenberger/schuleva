@@ -1,0 +1,165 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ survey.title }} – {{ t("app.title") }}{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+  <div>
+    <a href="/admin/" class="breadcrumb">← Übersicht</a>
+    <h2>{{ survey.title }}</h2>
+    <span class="badge badge-{{ survey.status }}">{{ t("status." + survey.status) }}</span>
+    <span class="meta-info">{{ survey.starts_at[:10] }} – {{ survey.ends_at[:10] }}</span>
+  </div>
+
+  <div style="display:flex;gap:0.5rem;align-items:center;">
+    {% if survey.status == "active" %}
+    <form method="post" action="/admin/survey/{{ survey.id }}/close"
+          onsubmit="return confirm('{{ t("admin.detail.close_confirm") }}')">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <button type="submit" class="btn btn-danger">{{ t("admin.detail.close_survey") }}</button>
+    </form>
+    {% endif %}
+    {% if user.is_admin %}
+    <form method="post" action="/admin/survey/{{ survey.id }}/delete"
+          onsubmit="return confirm('Befragung und alle Daten unwiderruflich löschen?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <button type="submit" class="btn btn-danger btn-sm">Löschen</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Klassen-Statistik -->
+<section class="admin-section">
+  <h3>Klassen &amp; Rückläufe</h3>
+
+  {% if class_stats %}
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>{{ t("admin.detail.class") }}</th>
+          <th>{{ t("admin.detail.total_tans") }}</th>
+          <th>{{ t("admin.detail.used_tans") }}</th>
+          <th>{{ t("admin.detail.responses") }}</th>
+          <th>{{ t("admin.detail.print_pdf") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in class_stats %}
+        <tr>
+          <td><strong>{{ c.name }}</strong></td>
+          <td>{{ c.total_tans }}</td>
+          <td>{{ c.used_tans }}</td>
+          <td>{{ c.responses }}</td>
+          <td>
+            {% if c.total_tans > 0 %}
+            <a href="/admin/survey/{{ survey.id }}/tans.pdf?class_name={{ c.name }}"
+               class="btn btn-sm btn-secondary">PDF</a>
+            <a href="/admin/survey/{{ survey.id }}/tans.csv?class_name={{ c.name }}"
+               class="btn btn-sm btn-secondary">CSV</a>
+            {% endif %}
+            {% if survey.status == "active" %}
+            <form method="post" action="/admin/survey/{{ survey.id }}/guided/start" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf }}">
+              <input type="hidden" name="class_name" value="{{ c.name }}">
+              <button type="submit" class="btn btn-sm btn-guided">▶ Geführter Modus</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        {% if class_stats|length > 1 %}
+        <tr class="table-total">
+          <td><strong>Gesamt</strong></td>
+          <td>{{ class_stats|sum(attribute='total_tans') }}</td>
+          <td>{{ class_stats|sum(attribute='used_tans') }}</td>
+          <td>{{ class_stats|sum(attribute='responses') }}</td>
+          <td>
+            <a href="/admin/survey/{{ survey.id }}/tans.pdf" class="btn btn-sm btn-secondary">Alle PDFs</a>
+            <a href="/admin/survey/{{ survey.id }}/tans.csv" class="btn btn-sm btn-secondary">Alle CSV</a>
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty-state">Noch keine Klassen vorhanden.</p>
+  {% endif %}
+</section>
+
+<!-- Klasse hinzufügen -->
+{% if survey.status != "closed" %}
+<section class="admin-section">
+  <h3>{{ t("admin.detail.add_class") }}</h3>
+  <form method="post" action="/admin/survey/{{ survey.id }}/classes" class="inline-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <input type="text" name="class_name" class="field-input field-input-sm"
+      placeholder="{{ t("admin.detail.class_name") }}" required maxlength="10">
+    <button type="submit" class="btn btn-primary">{{ t("admin.detail.add") }}</button>
+  </form>
+</section>
+
+<!-- TANs generieren -->
+{% if class_stats %}
+<section class="admin-section">
+  <h3>{{ t("admin.detail.generate_tans") }}</h3>
+  <form method="post" action="/admin/survey/{{ survey.id }}/tans" class="inline-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <select name="class_name" class="field-select field-select-sm" required>
+      {% for c in class_stats %}
+      <option value="{{ c.name }}">Klasse {{ c.name }}</option>
+      {% endfor %}
+    </select>
+    <input type="number" name="count" class="field-input field-input-sm"
+      min="1" max="200" value="30" style="width:80px" required>
+    <span class="field-hint">TANs</span>
+    <button type="submit" class="btn btn-primary">{{ t("admin.detail.generate") }}</button>
+  </form>
+</section>
+{% endif %}
+{% endif %}
+
+<!-- Auswertung-Link (nur nach Schließung) -->
+{% if survey.status == "closed" %}
+<section class="admin-section">
+  <h3>Auswertung &amp; Export</h3>
+  <div class="btn-group">
+    <a href="/admin/survey/{{ survey.id }}/results" class="btn btn-primary">
+      Auswertung öffnen
+    </a>
+    <a href="/admin/survey/{{ survey.id }}/export.csv" class="btn btn-secondary">
+      CSV exportieren
+    </a>
+    <a href="/admin/survey/{{ survey.id }}/results.pdf" class="btn btn-secondary">
+      PDF exportieren
+    </a>
+  </div>
+</section>
+
+{% if user.is_admin %}
+<section class="admin-section">
+  <h3>Öffentlicher Ergebnislink</h3>
+  {% if survey.share_token %}
+  <div class="share-link-box">
+    <input class="field-input share-link-input" readonly
+           value="{{ request.url_for('public_results', token=survey.share_token) }}">
+    <a href="{{ request.url_for('public_results', token=survey.share_token) }}"
+       target="_blank" class="btn btn-sm btn-secondary">Öffnen</a>
+  </div>
+  <form method="post" action="/admin/survey/{{ survey.id }}/share/revoke"
+        onsubmit="return confirm('Link deaktivieren?')" style="margin-top:0.5rem">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <button type="submit" class="btn btn-sm btn-danger">Link deaktivieren</button>
+  </form>
+  {% else %}
+  <p class="field-hint">Noch kein öffentlicher Link erstellt.</p>
+  <form method="post" action="/admin/survey/{{ survey.id }}/share/create">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <button type="submit" class="btn btn-primary">Link erstellen</button>
+  </form>
+  {% endif %}
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

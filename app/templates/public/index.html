@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}{{ t("app.title") }}{% endblock %}
+{% block body_class %}public-body{% endblock %}
+
+{% block content %}
+<div class="public-container">
+  <header class="public-header">
+    <h1>{{ t("app.title") }}</h1>
+  </header>
+
+  <main class="public-main tan-entry">
+    <h2>{{ t("index.headline") }}</h2>
+    <p class="intro-text">{{ t("index.intro") }}</p>
+
+    <div id="error-msg" class="error-banner" style="display:none"></div>
+
+    <form id="tan-form" class="tan-form" novalidate>
+      <label for="tan-input" class="field-label">{{ t("index.tan_label") }}</label>
+      <input
+        type="text"
+        id="tan-input"
+        name="tan"
+        class="tan-input"
+        placeholder="{{ t("index.tan_placeholder") }}"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="characters"
+        spellcheck="false"
+        maxlength="14"
+      >
+      <button type="submit" class="btn btn-primary btn-large">
+        {{ t("index.submit") }}
+      </button>
+    </form>
+
+    {% if dsgvo %}
+    <div class="dsgvo-hint">
+      <strong>{{ t("dsgvo.title") }}:</strong> {{ dsgvo }}
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('tan-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const tanRaw = document.getElementById('tan-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('error-msg');
+  errEl.style.display = 'none';
+
+  if (!tanRaw) return;
+
+  const btn = this.querySelector('button[type=submit]');
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    const res = await fetch('/api/tan/check', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({tan: tanRaw})
+    });
+    const data = await res.json();
+    if (data.valid) {
+      sessionStorage.setItem('survey_tan', tanRaw);
+      sessionStorage.setItem('survey_meta', JSON.stringify(data));
+      window.location.href = '/befragung';
+    } else {
+      errEl.textContent = data.error || '{{ t("index.tan_error") }}';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = '{{ t("index.submit") }}';
+    }
+  } catch(err) {
+    errEl.textContent = 'Netzwerkfehler. Bitte versuche es erneut.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '{{ t("index.submit") }}';
+  }
+});
+</script>
+{% endblock %}

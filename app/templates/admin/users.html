@@ -1,0 +1,86 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Benutzer – {{ t("app.title") }}{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+  <h2>Benutzerverwaltung</h2>
+</div>
+
+<!-- Benutzerliste -->
+<section class="admin-section">
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Benutzername</th>
+          <th>Rolle</th>
+          <th>Erstellt</th>
+          <th>PW-Änderung</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong>{{ u.username }}</strong></td>
+          <td>
+            {% if u.role == "schulleitung" %}
+            <span class="badge badge-active">Schulleitung</span>
+            {% else %}
+            <span class="badge">Lehrer</span>
+            {% endif %}
+          </td>
+          <td>{{ u.created_at[:10] }}</td>
+          <td>{{ "Ausstehend" if u.must_change_password else "–" }}</td>
+          <td class="action-cell">
+            <form method="post" action="/admin/users/{{ u.id }}/reset-password" style="display:inline"
+                  onsubmit="return confirm('Passwort für {{ u.username }} zurücksetzen?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf }}">
+              <button class="btn btn-sm btn-secondary">PW zurücksetzen</button>
+            </form>
+            {% if u.id != user.id %}
+            <form method="post" action="/admin/users/{{ u.id }}/delete" style="display:inline"
+                  onsubmit="return confirm('Benutzer {{ u.username }} löschen?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf }}">
+              <button class="btn btn-sm btn-danger">Löschen</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Neuer Benutzer -->
+<section class="admin-section">
+  <h3>Neuen Benutzer anlegen</h3>
+  {% if errors is defined and errors %}
+  <div class="info-banner" style="background:#fef2f2;border-color:#fca5a5;color:#991b1b;">
+    {% for e in errors %}<p>{{ e }}</p>{% endfor %}
+  </div>
+  {% endif %}
+  <form method="post" action="/admin/users/create" class="user-create-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <div class="form-row">
+      <label class="field-label">Benutzername</label>
+      <input type="text" name="username" class="field-input" required minlength="3"
+             placeholder="mind. 3 Zeichen" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <label class="field-label">Passwort</label>
+      <input type="password" name="password" class="field-input" required minlength="10"
+             placeholder="mind. 10 Zeichen" autocomplete="new-password">
+    </div>
+    <div class="form-row">
+      <label class="field-label">Rolle</label>
+      <select name="role" class="field-select">
+        <option value="lehrer">Lehrer</option>
+        <option value="schulleitung">Schulleitung</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Benutzer anlegen</button>
+  </form>
+</section>
+{% endblock %}

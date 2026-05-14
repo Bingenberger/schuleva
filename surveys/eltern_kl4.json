@@ -1,0 +1,134 @@
+{
+  "id": "eltern_kl4",
+  "version": 1,
+  "title": "Elternbefragung zum Ende der Grundschulzeit",
+  "intro": "Bitte beantworten Sie die folgenden Fragen ehrlich. Ihre Antworten sind anonym — eine Rückverfolgung zu Ihrer Person ist technisch ausgeschlossen.",
+  "scale": {
+    "id": "eltern_4stufig",
+    "options": [
+      {"value": "trifft_zu",        "label": "Trifft zu"},
+      {"value": "teilweise",        "label": "Trifft teilweise zu"},
+      {"value": "eher_nicht",       "label": "Trifft eher nicht zu"},
+      {"value": "nicht",            "label": "Trifft nicht zu"}
+    ]
+  },
+  "sections": [
+    {
+      "id": "ziele",
+      "title": "Ziele und Anforderungen des Unterrichts",
+      "questions": [
+        {
+          "id": "e01",
+          "type": "single_choice",
+          "text": "Die Leistungsanforderungen an der Schule sind …",
+          "options": [
+            {"value": "angemessen", "label": "angemessen"},
+            {"value": "zu_hoch",    "label": "zu hoch"},
+            {"value": "zu_niedrig", "label": "zu niedrig"}
+          ]
+        },
+        {"id": "e02", "type": "scale", "text": "Die Lehrkräfte geben sich große Mühe, die Kinder angemessen zu fördern."},
+        {"id": "e03", "type": "scale", "text": "Unser Kind hat bisher einen seinen Fähigkeiten entsprechenden bestmöglichen Lernstand im Lesen erreicht."},
+        {"id": "e04", "type": "scale", "text": "Unser Kind hat bisher einen seinen Fähigkeiten entsprechenden bestmöglichen Lernstand im Schreiben erreicht."},
+        {"id": "e05", "type": "scale", "text": "Unser Kind hat bisher einen seinen Fähigkeiten entsprechenden bestmöglichen Lernstand im Rechnen erreicht."},
+        {"id": "e06", "type": "scale", "text": "Der Unterricht fördert das selbstständige Lernen der Schüler erfolgreich (durch Vermittlung von Lerntechniken zum eigenständigen Lernen)."},
+        {"id": "e07", "type": "scale", "text": "Der Unterricht fördert erfolgreich die Teamfähigkeit der Schüler (durch Partner-/Gruppenarbeit und -präsentationen)."},
+        {"id": "e08", "type": "scale", "text": "Die musische Bildung wird angemessen gefördert (im Kunst-/Musikunterricht)."},
+        {"id": "e09", "type": "scale", "text": "Die Bewegungsfähigkeit der Schüler wird durch das Konzept der „Bewegungsfreudigen Schule/Tutmirgut\" zusätzlich zum Sportunterricht gefördert."},
+        {"id": "e10", "type": "scale", "text": "Mein/Unser Kind hat in der Grundschulzeit viel über gesundheitsbewusstes Verhalten im Rahmen von Tutmirgut gelernt."},
+        {"id": "e11", "type": "scale", "text": "Die Schüler/innen nehmen an Ausflügen und Exkursionen teil."},
+        {"id": "e12", "type": "scale", "text": "Die Schule bereitet die Viertklässler insgesamt gut auf den Übergang in Klasse 5 vor."}
+      ]
+    },
+    {
+      "id": "methoden",
+      "title": "Inhalte, Methoden, Leistungsbewertung",
+      "questions": [
+        {"id": "e13", "type": "scale", "text": "Die Lehrkräfte vermitteln unserem Kind genug fachliches Wissen."},
+        {"id": "e14", "type": "scale", "text": "Die Lehrkräfte nutzen ein breites Methodenspektrum (Lehrerinstruktion / Partner- und Gruppenarbeit / Arbeitspläne / Einsatz unterschiedlicher Medien)."},
+        {"id": "e15", "type": "scale", "text": "Durch die schulischen Maßnahmen zur Leseförderung wurde unser Kind in der Ausbildung seiner Lesemotivation und Lesefähigkeit erfolgreich unterstützt."},
+        {"id": "e16", "type": "scale", "text": "Unser Kind bekommt regelmäßig Hausaufgaben auf."},
+        {"id": "e17", "type": "scale", "text": "Unser Kind kann seine Hausaufgaben weitgehend selbstständig und in angemessener Zeit ausführen."},
+        {"id": "e18", "type": "scale", "text": "Die Hausaufgaben werden regelmäßig durch die Lehrer kontrolliert."}
+      ]
+    },
+    {
+      "id": "miteinander",
+      "title": "Das Miteinander von Lehrern, Eltern und Schülern",
+      "questions": [
+        {"id": "e19", "type": "scale", "text": "Die Lehrer beurteilen die Leistungen unseres Kindes gerecht."},
+        {"id": "e20", "type": "scale", "text": "Die Schule bereitet die Kinder auf das Lernen und Handeln in der digitalisierten Welt vor."},
+        {"id": "e21", "type": "scale", "text": "Die Schule hat eine Schulordnung, die das Zusammenleben der Schüler gut regelt."},
+        {"id": "e22", "type": "scale", "text": "Die Lehrkräfte achten konsequent auf die Einhaltung der Schul- und Klassenregeln und setzen klare Grenzen."},
+        {"id": "e23", "type": "scale", "text": "Die Schüler gehen in der Klasse zumeist kameradschaftlich miteinander um."},
+        {"id": "e24", "type": "scale", "text": "Die Schüler gehen in der Pause zumeist kameradschaftlich miteinander um."},
+        {"id": "e25", "type": "scale", "text": "Unser Kind fühlt sich in seiner Klasse sicher."},
+        {"id": "e26", "type": "scale", "text": "Unser Kind fühlt sich in der Pause sicher."},
+        {"id": "e27", "type": "scale", "text": "Die eingeführten Regeln zur Streitschlichtung wurden von unserem Kind als hilfreich aufgenommen."},
+        {"id": "e28", "type": "scale", "text": "Die Lehrer nehmen die Schülerin / den Schüler in ihrer / seiner Persönlichkeit angemessen wahr."},
+        {"id": "e29", "type": "scale", "text": "Die Lehrer pflegen einen freundlichen, respektvollen Umgang mit Schülern und Eltern."},
+        {"id": "e30", "type": "scale", "text": "Die Lehrer sind in der Regel zu streng mit den Schülern."}
+      ]
+    },
+    {
+      "id": "zufriedenheit",
+      "title": "Schulzufriedenheit",
+      "questions": [
+        {"id": "e31", "type": "scale", "text": "Die Zusammenarbeit zwischen Lehrern und Eltern ist an der Schule gut."},
+        {"id": "e32", "type": "scale", "text": "Zu den Lehrern unseres Kindes haben wir Vertrauen."},
+        {"id": "e33", "type": "scale", "text": "Unser Kind geht gerne zur Schule."},
+        {"id": "e34", "type": "scale", "text": "Unser Kind fühlt sich in seiner Klassengemeinschaft wohl."},
+        {"id": "e35", "type": "scale", "text": "Unser Kind wurde absichtlich von Mitschüler/innen schlecht behandelt."},
+        {
+          "id": "e36",
+          "type": "scale",
+          "text": "Erfuhren die Lehrkräfte davon, so unternahmen sie etwas dagegen, um dies zu unterbinden.",
+          "show_if": {
+            "any_of": [
+              {"question": "e35", "not_equals": "nicht"}
+            ]
+          }
+        },
+        {"id": "e37", "type": "scale", "text": "Probleme in unserer Klasse konnten wir stets mit der Klassenlehrerin / dem Klassenlehrer besprechen."},
+        {"id": "e38", "type": "scale", "text": "Probleme in unserer Klasse konnten wir gemeinsam auf Elternabenden besprechen."},
+        {"id": "e39", "type": "scale", "text": "Wenn es Probleme bei unserem Kind gab, wurden wir von den Lehrkräften darauf aufmerksam gemacht."},
+        {"id": "e40", "type": "scale", "text": "Gingen wir mit einem Problem auf die Lehrkräfte zu, so wurden wir ernst genommen und erhielten Unterstützung / Beratung."},
+        {"id": "e41", "type": "scale", "text": "In seinem Klassenraum fühlt sich unser Kind wohl."},
+        {"id": "e42", "type": "scale", "text": "Unser Kind benutzt ohne Scheu die Schultoiletten."},
+        {"id": "e43", "type": "scale", "text": "Die Schulgebäude sind in einem gepflegten, einladenden Zustand."},
+        {"id": "e44", "type": "scale", "text": "Die Entwicklung der Schule in den vergangenen vier Jahren beurteile(n) ich / wir positiv."},
+        {"id": "e45", "type": "scale", "text": "Die Schule teilt den Eltern alle notwendigen und wichtigen Informationen rechtzeitig mit."},
+        {"id": "e46", "type": "scale", "text": "Die digitalen Kanäle der Schule waren für mich / uns eine gute Informationsquelle (Homepage, Newsletter, digitales Klassenbuch, Elternvideos etc.)."},
+        {"id": "e47", "type": "scale", "text": "Die Schule greift Fragen, Probleme oder Vorschläge der Eltern auf."},
+        {"id": "e48", "type": "scale", "text": "Der Unterrichtsausfall während der Grundschulzeit unseres Kindes war zu hoch."}
+      ]
+    },
+    {
+      "id": "gesamt",
+      "title": "Gesamtbeurteilung",
+      "questions": [
+        {
+          "id": "e50",
+          "type": "single_choice",
+          "text": "Rückblickend bin ich mit der Schule meines Kindes …",
+          "options": [
+            {"value": "sehr_zufrieden", "label": "sehr zufrieden"},
+            {"value": "zufrieden",      "label": "zufrieden"},
+            {"value": "eher_nicht",     "label": "eher nicht zufrieden"},
+            {"value": "gar_nicht",      "label": "gar nicht zufrieden"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "freitext",
+      "title": "Zum Schluss …",
+      "questions": [
+        {"id": "e51", "type": "text", "text": "Das hat mir / uns während der Grundschulzeit meines / unseres Kindes besonders gut gefallen:", "optional": true},
+        {"id": "e52", "type": "text", "text": "Das hat mir / uns während der Grundschulzeit meines / unseres Kindes nicht gefallen:", "optional": true},
+        {"id": "e53", "type": "text", "text": "Ich / Wir haben folgende Verbesserungsvorschläge:", "optional": true},
+        {"id": "e54", "type": "text", "text": "Was ich / wir sonst noch sagen möchten:", "optional": true}
+      ]
+    }
+  ]
+}

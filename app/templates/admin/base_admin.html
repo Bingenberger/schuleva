@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Schulleitung – {{ t("app.title") }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body class="admin-body">
+  <header class="admin-header">
+    <a href="/admin/" class="admin-logo">{{ t("app.title") }}</a>
+    {% if user is defined and user %}
+    <nav class="admin-nav">
+      <a href="/admin/" class="admin-nav-link">Befragungen</a>
+      {% if user.is_admin %}
+      <a href="/admin/questionnaires" class="admin-nav-link">Fragebögen</a>
+      <a href="/admin/users" class="admin-nav-link">Benutzer</a>
+      {% endif %}
+    </nav>
+    <div class="admin-header-right">
+      <span class="admin-user-badge">
+        {{ user.username }}
+        {% if not user.is_admin %}<span class="role-pill">Lehrer</span>{% endif %}
+      </span>
+      <form method="post" action="/admin/logout" style="display:inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <button type="submit" class="btn btn-logout">Abmelden</button>
+      </form>
+    </div>
+    {% endif %}
+  </header>
+  <main class="admin-main">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="admin-footer">
+    {{ t("app.title") }} · {% block footer_extra %}{% endblock %}
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

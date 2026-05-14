@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ t("start.headline") }} – {{ t("app.title") }}{% endblock %}
+{% block body_class %}public-body{% endblock %}
+
+{% block content %}
+<div class="public-container">
+  <main class="public-main tan-entry">
+    <h2>{{ t("start.headline") }}</h2>
+    <p id="status-msg">{{ t("start.loading") }}</p>
+    <a href="/" id="manual-link" class="btn btn-secondary" style="display:none">
+      {{ t("start.enter_manually") }}
+    </a>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  const fragment = window.location.hash.slice(1);
+  const statusEl = document.getElementById('status-msg');
+  const manualLink = document.getElementById('manual-link');
+
+  if (!fragment) {
+    statusEl.textContent = '{{ t("start.invalid") }}';
+    manualLink.style.display = 'block';
+    return;
+  }
+
+  const tan = decodeURIComponent(fragment).trim().toUpperCase();
+
+  fetch('/api/tan/check', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({tan: tan})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.valid) {
+      sessionStorage.setItem('survey_tan', tan);
+      sessionStorage.setItem('survey_meta', JSON.stringify(data));
+      window.location.replace('/befragung');
+    } else {
+      statusEl.textContent = data.error || '{{ t("start.invalid") }}';
+      manualLink.style.display = 'block';
+    }
+  })
+  .catch(() => {
+    statusEl.textContent = 'Netzwerkfehler. Bitte versuche es erneut.';
+    manualLink.style.display = 'block';
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Auswertung: {{ survey.title }} – {{ t("app.title") }}{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+  <div>
+    <a href="/admin/survey/{{ survey.id }}" class="breadcrumb">← Befragung</a>
+    <h2>{{ t("admin.results.headline", title=survey.title) }}</h2>
+    <span class="meta-info">{{ survey.starts_at[:10] }} – {{ survey.ends_at[:10] }}</span>
+  </div>
+</div>
+
+<!-- Filter + Export -->
+<div class="results-toolbar">
+  <form method="get" action="/admin/survey/{{ survey.id }}/results" class="filter-form">
+    <label class="field-label-inline">{{ t("admin.results.filter") }}:</label>
+    <select name="class_name" class="field-select field-select-sm" onchange="this.form.submit()">
+      <option value="">{{ t("admin.results.all") }}</option>
+      {% for cn in class_names %}
+      <option value="{{ cn }}" {{ "selected" if selected_class == cn }}>Klasse {{ cn }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <div class="btn-group">
+    <a href="/admin/survey/{{ survey.id }}/results.pdf{% if selected_class %}?class_name={{ selected_class }}{% endif %}"
+       class="btn btn-secondary btn-sm">{{ t("admin.results.export_pdf") }}</a>
+    <a href="/admin/survey/{{ survey.id }}/export.csv{% if selected_class %}?class_name={{ selected_class }}{% endif %}"
+       class="btn btn-secondary btn-sm">{{ t("admin.results.export_csv") }}</a>
+    {% if user.is_admin %}
+      {% if survey.share_token %}
+      <a href="{{ request.url_for('public_results', token=survey.share_token) }}"
+         target="_blank" class="btn btn-sm btn-secondary">Öffentlicher Link</a>
+      <form method="post" action="/admin/survey/{{ survey.id }}/share/revoke" style="display:inline"
+            onsubmit="return confirm('Link deaktivieren?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <button class="btn btn-sm btn-danger">Link deaktivieren</button>
+      </form>
+      {% else %}
+      <form method="post" action="/admin/survey/{{ survey.id }}/share/create" style="display:inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <button class="btn btn-sm btn-primary">Link freigeben</button>
+      </form>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<p class="results-summary">
+  <strong>{{ t("admin.results.n_responses", n=eval_result.total_responses) }}</strong>
+  · {{ filter_label }}
+</p>
+
+{% if eval_result.total_responses == 0 %}
+<p class="empty-state">{{ t("admin.results.no_responses") }}</p>
+{% else %}
+
+{% for section in eval_result.sections %}
+<section class="results-section">
+  <h3>{{ section.title }}</h3>
+
+  {% for q in section.questions %}
+  <div class="result-question">
+    <p class="q-text">{{ q.text }}</p>
+
+    {% if q.type in ("scale", "single_choice", "conditional") %}
+      {% set stats = q.stats %}
+      {% if stats.total > 0 %}
+      <div class="bar-chart">
+        {% for opt in stats.options %}
+        {% set pct = stats.percents[opt.value] %}
+        {% set cnt = stats.counts[opt.value] %}
+        <div class="bar-row">
+          <span class="bar-label">{{ opt.label }}</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: {{ pct }}%"></div>
+          </div>
+          <span class="bar-value">{{ pct }}% ({{ cnt }})</span>
+        </div>
+        {% endfor %}
+        <p class="n-small">n = {{ stats.total }}</p>
+      </div>
+      {% else %}
+      <p class="n-small">Keine Antworten.</p>
+      {% endif %}
+
+    {% elif q.type == "text" %}
+      {% if q.freitexte %}
+      <ul class="freitext-list">
+        {% for text in q.freitexte %}
+        <li>{{ text }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="n-small">Keine Antworten.</p>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endfor %}
+
+{% endif %}
+{% endblock %}

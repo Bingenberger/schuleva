@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Ergebnisse: {{ survey.title }} – {{ t("app.title") }}{% endblock %}
+{% block body_class %}public-results-body{% endblock %}
+
+{% block content %}
+<header class="pub-header">
+  <div class="pub-header-inner">
+    <h1 class="pub-title">{{ survey.title }}</h1>
+    <span class="pub-meta">{{ survey.starts_at[:10] }} – {{ survey.ends_at[:10] }}</span>
+  </div>
+</header>
+
+<main class="pub-main">
+
+  <!-- Klassenfilter -->
+  {% if class_names %}
+  <div class="pub-filter">
+    <a href="?{% if selected_class %}{% endif %}"
+       class="pub-filter-btn {% if not selected_class %}active{% endif %}">Schule gesamt</a>
+    {% for cn in class_names %}
+    <a href="?class_name={{ cn }}"
+       class="pub-filter-btn {% if selected_class == cn %}active{% endif %}">Klasse {{ cn }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <p class="pub-summary">
+    <strong>{{ eval_result.total_responses }} Rückmeldungen</strong>
+    · {{ filter_label }}
+  </p>
+
+  {% if eval_result.total_responses == 0 %}
+  <p class="empty-state">Noch keine Antworten vorhanden.</p>
+  {% else %}
+
+  {% for section in eval_result.sections %}
+  <section class="pub-section">
+    <h2 class="pub-section-title">{{ section.title }}</h2>
+
+    {% for q in section.questions %}
+    <div class="pub-question">
+      <p class="pub-q-text">{{ q.text }}</p>
+
+      {% if q.type in ("scale", "single_choice", "conditional") %}
+        {% set stats = q.stats %}
+        {% if stats.total > 0 %}
+        <div class="pub-bar-chart">
+          {% for opt in stats.options %}
+          {% set pct = stats.percents[opt.value] %}
+          {% set cnt = stats.counts[opt.value] %}
+          <div class="pub-bar-row">
+            <span class="pub-bar-label">{{ opt.label }}</span>
+            <div class="pub-bar-track">
+              <div class="pub-bar-fill" style="width:{{ pct }}%">
+                {% if pct >= 8 %}<span class="pub-bar-pct">{{ pct }}%</span>{% endif %}
+              </div>
+            </div>
+            <span class="pub-bar-count">{{ cnt }}</span>
+          </div>
+          {% endfor %}
+          <p class="pub-n">n = {{ stats.total }}</p>
+        </div>
+        {% else %}
+        <p class="pub-n">Keine Antworten.</p>
+        {% endif %}
+
+      {% elif q.type == "text" %}
+        {% if q.freitexte %}
+        <ul class="pub-freitext-list">
+          {% for text in q.freitexte %}
+          <li>{{ text }}</li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="pub-n">Keine Antworten.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endfor %}
+
+  {% endif %}
+</main>
+
+<footer class="pub-footer">
+  {{ t("app.title") }}
+</footer>
+{% endblock %}

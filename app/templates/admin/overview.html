@@ -1,0 +1,51 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ t("admin.overview.headline") }} – {{ t("app.title") }}{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+  <h2>{{ t("admin.overview.headline") }}</h2>
+  {% if user.is_admin %}
+  <a href="/admin/survey/new" class="btn btn-primary">{{ t("admin.overview.new") }}</a>
+  {% endif %}
+</div>
+
+{% if surveys %}
+<div class="table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>{{ t("admin.overview.title") }}</th>
+        <th>{{ t("admin.overview.type") }}</th>
+        <th>{{ t("admin.overview.status") }}</th>
+        <th>{{ t("admin.overview.period") }}</th>
+        <th>{{ t("admin.overview.responses") }}</th>
+        <th>{{ t("admin.overview.actions") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in surveys %}
+      <tr>
+        <td><strong>{{ s.title }}</strong></td>
+        <td>{{ "Eltern" if s.survey_type == "eltern_kl4" else "Kinder" }}</td>
+        <td>
+          <span class="badge badge-{{ s.status }}">
+            {{ t("status." + s.status) }}
+          </span>
+        </td>
+        <td>{{ s.starts_at[:10] }} – {{ s.ends_at[:10] }}</td>
+        <td>{{ s.responses }}/{{ s.total_tans }}</td>
+        <td class="action-cell">
+          <a href="/admin/survey/{{ s.id }}" class="btn btn-sm btn-secondary">{{ t("admin.overview.detail") }}</a>
+          {% if s.status == "closed" %}
+          <a href="/admin/survey/{{ s.id }}/results" class="btn btn-sm btn-primary">{{ t("admin.overview.results") }}</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="empty-state">Noch keine Befragungen vorhanden. <a href="/admin/survey/new">Jetzt anlegen</a></p>
+{% endif %}
+{% endblock %}

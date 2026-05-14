@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{{ survey_title }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="guided-student-body{% if is_kinder %} kinder-survey{% endif %}">
+
+  <!-- WAITING / LOBBY -->
+  <div id="screen-waiting" class="guided-student-screen">
+    <div class="guided-student-card">
+      <div class="guided-student-emoji">⏳</div>
+      <h1 class="guided-student-title">{{ survey_title }}</h1>
+      <p class="guided-student-hint">Warte auf die Lehrkraft …</p>
+      <div class="guided-pulse"></div>
+    </div>
+  </div>
+
+  <!-- QUESTION -->
+  <div id="screen-question" class="guided-student-screen" style="display:none;">
+    <div class="guided-student-progress-bar">
+      <div id="s-progress-fill" class="guided-student-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="guided-student-q-wrap">
+      <div class="guided-student-q-num" id="s-q-num">Frage 1</div>
+      <div class="guided-student-q-text" id="s-q-text"></div>
+
+      <!-- LOCKED -->
+      <div id="s-locked" class="guided-student-locked">
+        <div class="guided-pulse"></div>
+        <p>Gleich geht es los …</p>
+      </div>
+
+      <!-- OPTIONS (scale / single_choice) -->
+      <div id="s-options" class="guided-student-options" style="display:none;"></div>
+
+      <!-- ANSWERED -->
+      <div id="s-answered" class="guided-student-answered" style="display:none;">
+        <div class="guided-student-check">✓</div>
+        <p>Antwort gespeichert!</p>
+        <p class="guided-student-hint">Warte auf die nächste Frage …</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENDED -->
+  <div id="screen-ended" class="guided-student-screen" style="display:none;">
+    <div class="guided-student-card">
+      <div class="guided-student-emoji">🎉</div>
+      <h1 class="guided-student-title">Vielen Dank!</h1>
+      <p class="guided-student-hint">Die Befragung ist abgeschlossen.</p>
+    </div>
+  </div>
+
+<script>
+'use strict';
+const SESSION_ID = {{ session_id | tojson }};
+const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/guided/${SESSION_ID}/student`;
+
+let ws = null;
+let currentQ = null;
+let currentScale = null;
+let reconnectTimer = null;
+
+function connect() {
+  ws = new WebSocket(WS_URL);
+  ws.onopen  = () => clearTimeout(reconnectTimer);
+  ws.onmessage = e => handleMsg(JSON.parse(e.data));
+  ws.onclose = () => { reconnectTimer = setTimeout(connect, 2500); };
+  ws.onerror = () => ws.close();
+}
+
+function handleMsg(msg) {
+  switch (msg.type) {
+    case 'waiting':
+      showScreen('waiting'); break;
+
+    case 'question':
+      currentQ     = msg.question;
+      currentScale = msg.scale;
+      renderQuestion(msg);
+      if (msg.already_answered) showAnswered();
+      else if (msg.unlocked)    showOptions();
+      else                       showLocked();
+      showScreen('question');
+      break;
+
+    case 'answers_unlocked':
+      showOptions();
+      break;
+
+    case 'answer_received':
+      showAnswered();
+      break;
+
+    case 'session_ended':
+      showScreen('ended');
+      break;
+  }
+}
+
+function renderQuestion(msg) {
+  const q   = msg.question;
+  const idx = msg.q_idx;
+  const tot = msg.total;
+
+  document.getElementById('s-q-num').textContent = `Frage ${idx + 1} von ${tot}`;
+  document.getElementById('s-q-text').textContent = q.text;
+  document.getElementById('s-progress-fill').style.width = ((idx / tot) * 100) + '%';
+}
+
+function showLocked() {
+  document.getElementById('s-locked').style.display   = '';
+  document.getElementById('s-options').style.display  = 'none';
+  document.getElementById('s-answered').style.display = 'none';
+}
+
+function showOptions() {
+  document.getElementById('s-locked').style.display   = 'none';
+  document.getElementById('s-answered').style.display = 'none';
+
+  const container = document.getElementById('s-options');
+  container.innerHTML = '';
+  container.style.display = '';
+
+  if (!currentQ) return;
+
+  const opts = currentQ.type === 'scale'
+    ? (currentScale && currentScale.options || [])
+    : (currentQ.options || []);
+
+  opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'guided-answer-btn' +
+      (currentQ.type === 'scale' ? ` guided-answer-scale guided-answer-scale-${i}` : '');
+    btn.textContent = opt.label;
+    btn.onclick = () => submitAnswer(currentQ.id, opt.value, btn, container);
+    container.appendChild(btn);
+  });
+}
+
+function submitAnswer(qId, value, clickedBtn, container) {
+  // Visual feedback
+  container.querySelectorAll('.guided-answer-btn').forEach(b => b.disabled = true);
+  clickedBtn.classList.add('selected');
+
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'answer', q_id: qId, value: value }));
+  }
+}
+
+function showAnswered() {
+  document.getElementById('s-locked').style.display   = 'none';
+  document.getElementById('s-options').style.display  = 'none';
+  document.getElementById('s-answered').style.display = '';
+}
+
+function showScreen(name) {
+  ['waiting', 'question', 'ended'].forEach(s => {
+    document.getElementById(`screen-${s}`).style.display = s === name ? '' : 'none';
+  });
+}
+
+connect();
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Befragung – {{ t("app.title") }}{% endblock %}
+{% block body_class %}public-body survey-body{% endblock %}
+
+{% block content %}
+<div id="survey-app">
+  <!-- Loading state -->
+  <div id="loading-screen" class="public-container">
+    <main class="public-main">
+      <p>Fragebogen wird geladen …</p>
+    </main>
+  </div>
+
+  <!-- Draft restore prompt -->
+  <div id="draft-prompt" class="public-container" style="display:none">
+    <main class="public-main">
+      <h2>{{ t("survey.draft_found") }}</h2>
+      <div class="btn-group-stack">
+        <button id="draft-continue" class="btn btn-primary btn-large">{{ t("survey.draft_continue") }}</button>
+        <button id="draft-restart" class="btn btn-secondary btn-large">{{ t("survey.draft_restart") }}</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Survey content -->
+  <div id="survey-screen" style="display:none">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-track">
+        <div id="progress-bar" class="progress-bar-fill" style="width:0%"></div>
+      </div>
+      <span id="progress-label" class="progress-label"></span>
+    </div>
+
+    <div class="public-container">
+      <header class="survey-header">
+        <h1 id="survey-title"></h1>
+        <p id="section-label" class="section-label"></p>
+      </header>
+
+      <main class="survey-questions" id="questions-container">
+      </main>
+
+      <nav class="survey-nav">
+        <button id="btn-back" class="btn btn-secondary" style="display:none">{{ t("survey.back") }}</button>
+        <button id="btn-save" class="btn btn-ghost">{{ t("survey.save_later") }}</button>
+        <button id="btn-next" class="btn btn-primary">{{ t("survey.next") }}</button>
+        <button id="btn-submit" class="btn btn-primary" style="display:none">{{ t("survey.submit") }}</button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div id="error-screen" class="public-container" style="display:none">
+    <main class="public-main">
+      <div class="error-banner" id="error-text"></div>
+      <a href="/" class="btn btn-secondary">Zur Startseite</a>
+    </main>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/app.js"></script>
+{% endblock %}

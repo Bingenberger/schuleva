@@ -1,0 +1,128 @@
+{
+  "id": "kinder_kl4",
+  "version": 1,
+  "title": "Kinderbefragung zum Ende der Grundschulzeit",
+  "intro": "Bitte beantworte die folgenden Fragen ehrlich. Deine Antworten sind anonym — niemand kann erkennen, dass sie von dir kommen.",
+  "scale": {
+    "id": "kinder_4stufig",
+    "options": [
+      {"value": "stimmt",     "label": "Stimmt"},
+      {"value": "teilweise",  "label": "Stimmt teilweise"},
+      {"value": "eher_nicht", "label": "Stimmt eher nicht"},
+      {"value": "nicht",      "label": "Stimmt nicht"}
+    ]
+  },
+  "sections": [
+    {
+      "id": "unterricht",
+      "title": "Der Unterricht",
+      "questions": [
+        {"id": "k01", "type": "scale", "text": "Die Aufgaben, die mir gestellt werden, kann ich gut lösen."},
+        {"id": "k02", "type": "scale", "text": "Die Aufgaben sind meistens zu leicht für mich."},
+        {"id": "k03", "type": "scale", "text": "Die Aufgaben sind meistens zu schwer für mich."},
+        {"id": "k04", "type": "scale", "text": "Wenn ich Schwierigkeiten habe, hilft mir die Lehrerin/der Lehrer."},
+        {"id": "k05", "type": "scale", "text": "Wenn mir etwas sehr leicht fällt, erhalte ich Aufgaben, die mich mehr herausfordern."},
+        {"id": "k06", "type": "scale", "text": "Die Lehrer/innen geben sich große Mühe, den Schülern zu helfen."},
+        {"id": "k07", "type": "scale", "text": "Meine Lehrer/innen haben mir geholfen, immer mein Bestes zu geben."},
+        {"id": "k08", "type": "scale", "text": "Jetzt im vierten Schuljahr bin ich im Lesen so gut wie es mir möglich ist."},
+        {"id": "k09", "type": "scale", "text": "Jetzt im vierten Schuljahr bin ich im Schreiben so gut wie es mir möglich ist."},
+        {"id": "k10", "type": "scale", "text": "Jetzt im vierten Schuljahr bin ich im Rechnen so gut wie es mir möglich ist."},
+        {"id": "k11", "type": "scale", "text": "Wir durften im Unterricht etwas selbst herausfinden oder ausprobieren."},
+        {"id": "k12", "type": "scale", "text": "Wir haben mit einem Partner oder in der Gruppe gearbeitet."},
+        {"id": "k13", "type": "scale", "text": "Ich kann gut vor anderen etwas präsentieren (z.B. einen Vortrag zu einem Lernplakat halten)."},
+        {"id": "k14", "type": "scale", "text": "Ich habe im Deutschunterricht viel gelernt."},
+        {"id": "k15", "type": "scale", "text": "Ich lese gerne."},
+        {"id": "k16", "type": "scale", "text": "Ich arbeite gerne kreativ zu Büchern (z.B. im Lesetagebuch oder mit dem Bookcreator)."},
+        {"id": "k17", "type": "scale", "text": "Ich arbeite gern mit Antolin."},
+        {"id": "k18", "type": "scale", "text": "Ich kann gut einen eigenen Text schreiben."},
+        {"id": "k19", "type": "scale", "text": "Ich erkenne meine eigenen Fehlerwörter und weiß, wie ich sie üben kann."},
+        {"id": "k20", "type": "scale", "text": "Ich habe im Matheunterricht viel gelernt."},
+        {"id": "k21", "type": "scale", "text": "Ich löse gerne Knobelaufgaben."},
+        {"id": "k22", "type": "scale", "text": "Ich habe im Sport/Schwimmen viel gelernt."},
+        {"id": "k23", "type": "scale", "text": "Wir konnten während der Unterrichtszeit Bewegungspausen machen, um wieder fit für den Unterricht zu werden."},
+        {"id": "k24", "type": "scale", "text": "Auf dem Sitzkissen zu sitzen tat mir gut."},
+        {"id": "k25", "type": "scale", "text": "Ich habe im Unterricht viel über gesunde Ernährung gelernt."},
+        {"id": "k26", "type": "scale", "text": "Ich habe in Kunst viel gelernt."},
+        {"id": "k27", "type": "scale", "text": "Ich habe in Musik viel gelernt."},
+        {"id": "k28", "type": "scale", "text": "Ich habe in Religion viel gelernt."},
+        {"id": "k29", "type": "scale", "text": "Ich habe in Sachunterricht viel gelernt."},
+        {"id": "k30", "type": "scale", "text": "Ich habe in Englisch viel gelernt."},
+        {"id": "k31", "type": "scale", "text": "Ich habe gelernt, wie man digitale Medien zum Lernen einsetzen kann."},
+        {"id": "k32", "type": "scale", "text": "Ich kenne Gefahren beim Umgang mit digitalen Medien und weiß, wie ich mit ihnen umgehen kann."},
+        {"id": "k33", "type": "scale", "text": "Ich bekomme Hausaufgaben auf."},
+        {"id": "k34", "type": "scale", "text": "Meine Lehrer kontrollieren die Hausaufgaben regelmäßig."},
+        {"id": "k35", "type": "scale", "text": "Ich kann meine Hausaufgaben alleine machen."},
+        {"id": "k36", "type": "scale", "text": "Ich bekomme zu Hause/in der OGS Unterstützung bei den Hausaufgaben."},
+        {"id": "k37", "type": "scale", "text": "Ich brauche viel Zeit, um meine Hausaufgaben zu machen."}
+      ]
+    },
+    {
+      "id": "schulleben",
+      "title": "Das Schulleben",
+      "questions": [
+        {"id": "k38", "type": "scale", "text": "Unsere Schulordnung regelt das Zusammenleben der Schüler gut."},
+        {"id": "k39", "type": "scale", "text": "Die Lehrer achten streng auf die Einhaltung der Schul- und Klassenregeln."},
+        {"id": "k40", "type": "scale", "text": "Die Schüler gehen in meiner Klasse kameradschaftlich miteinander um."},
+        {"id": "k41", "type": "scale", "text": "Die Schüler gehen in den Pausen kameradschaftlich miteinander um."},
+        {"id": "k42", "type": "scale", "text": "Ich fühle mich in meiner Klasse sicher."},
+        {"id": "k43", "type": "scale", "text": "Ich fühle mich in der Pause sicher."},
+        {"id": "k44", "type": "scale", "text": "Die eingeführten Regeln zur Streitschlichtung haben mir geholfen, Streit selbstständig zu lösen."},
+        {"id": "k45", "type": "scale", "text": "Ich bin für meine Lehrerinnen/meine Lehrer wichtig. Sie achten auf mich."},
+        {"id": "k46", "type": "scale", "text": "Die Schüler sind freundlich und höflich zu den Lehrern."},
+        {"id": "k47", "type": "scale", "text": "Die Lehrer sind freundlich und höflich zu den Schülern."},
+        {"id": "k48", "type": "scale", "text": "Die Lehrer sind zu streng mit den Schülern."}
+      ]
+    },
+    {
+      "id": "zufriedenheit",
+      "title": "Schulzufriedenheit",
+      "questions": [
+        {"id": "k49", "type": "scale", "text": "Lehrer und Schüler verstehen sich an unserer Schule gut."},
+        {"id": "k50", "type": "scale", "text": "Ich habe Vertrauen zu meinen Lehrern."},
+        {"id": "k51", "type": "scale", "text": "Ich gehe sehr gerne zur Schule."},
+        {"id": "k52", "type": "scale", "text": "Ich fühle mich in meiner Klassengemeinschaft wohl."},
+        {"id": "k53", "type": "scale", "text": "Ich habe während meiner Grundschulzeit Mitschüler/innen absichtlich schlecht behandelt (Ich habe schlecht über jemanden gesprochen / sie oder ihn geärgert / geschlagen oder getreten)."},
+        {"id": "k54", "type": "scale", "text": "Ich wurde während meiner Grundschulzeit von Mitschülern/Mitschülerinnen absichtlich schlecht behandelt (Sie haben schlecht über mich gesprochen / mich geärgert / geschlagen oder getreten)."},
+        {
+          "id": "k55",
+          "type": "scale",
+          "text": "Wenn dies passierte, taten die Pausenaufsicht, mein/e Klassenlehrer/in oder die Schulleitung etwas dagegen (wenn sie davon erfuhren / es bemerkten).",
+          "show_if": {
+            "any_of": [
+              {"question": "k53", "not_equals": "nicht"},
+              {"question": "k54", "not_equals": "nicht"}
+            ]
+          }
+        },
+        {"id": "k56", "type": "scale", "text": "Probleme in unserer Klasse können wir mit unserer Klassenlehrerin besprechen."},
+        {"id": "k57", "type": "scale", "text": "Wenn ich ein Problem habe, bemerken meine Lehrkräfte dies."},
+        {"id": "k58", "type": "scale", "text": "Wenn ich mit einem Problem zu meinen Lehrern gehe, versuchen sie mir zu helfen."},
+        {"id": "k59", "type": "scale", "text": "In meinem Klassenraum fühle ich mich wohl und kann dort gut lernen."},
+        {"id": "k60", "type": "scale", "text": "Die Schultoiletten sind in der Regel sauber."},
+        {"id": "k61", "type": "scale", "text": "Meine Schule macht einen einladenden Eindruck. Hier kann ich mich wohlfühlen."},
+        {"id": "k62", "type": "scale", "text": "Wenn wir ein Problem haben, können wir damit auch zur Schulleitung gehen. Sie hört den Kindern zu und hilft, das Problem zu lösen."},
+        {
+          "id": "k63",
+          "type": "single_choice",
+          "text": "Rückblickend über 4 Jahre bin ich insgesamt mit meiner Grundschule …",
+          "options": [
+            {"value": "sehr_zufrieden",     "label": "sehr zufrieden"},
+            {"value": "zufrieden",          "label": "zufrieden"},
+            {"value": "eher_nicht",         "label": "eher nicht zufrieden"},
+            {"value": "gar_nicht",          "label": "gar nicht zufrieden"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "freitext",
+      "title": "Zum Schluss …",
+      "questions": [
+        {"id": "k64", "type": "text", "text": "Das hat mir bisher während meiner Grundschulzeit besonders gut gefallen:", "optional": true},
+        {"id": "k65", "type": "text", "text": "Das hat mir bisher während meiner Grundschulzeit überhaupt nicht gefallen:", "optional": true},
+        {"id": "k66", "type": "text", "text": "Ich habe folgende Verbesserungsvorschläge für die Zukunft meiner Grundschule:", "optional": true},
+        {"id": "k67", "type": "text", "text": "Was ich sonst noch sagen möchte:", "optional": true}
+      ]
+    }
+  ]
+}

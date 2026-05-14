@@ -1,0 +1,66 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ t("admin.survey.new.headline") }} – {{ t("app.title") }}{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width: 600px;">
+  <h2>{{ t("admin.survey.new.headline") }}</h2>
+
+  {% if error %}
+  <div class="error-banner">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="/admin/survey">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+
+    <label class="field-label">{{ t("admin.survey.title") }}</label>
+    <input type="text" name="title" class="field-input" required
+      placeholder="z.B. Abschlussbefragung Klasse 4, Schuljahr 24/25">
+
+    <label class="field-label">{{ t("admin.survey.type") }}</label>
+    <select name="survey_type" class="field-select" id="survey-type-sel">
+      <option value="eltern_kl4">{{ t("admin.survey.type.eltern") }}</option>
+      <option value="kinder_kl4">{{ t("admin.survey.type.kinder") }}</option>
+    </select>
+
+    <label class="field-label">{{ t("admin.survey.questionnaire") }}</label>
+    <select name="questionnaire_id" class="field-select">
+      {% for q in questionnaires %}
+      <option value="{{ q }}">{{ q }}</option>
+      {% endfor %}
+    </select>
+
+    <div class="field-row">
+      <div>
+        <label class="field-label">{{ t("admin.survey.starts_at") }}</label>
+        <input type="date" name="starts_at" class="field-input" required>
+      </div>
+      <div>
+        <label class="field-label">{{ t("admin.survey.ends_at") }}</label>
+        <input type="date" name="ends_at" class="field-input" required>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <a href="/admin/" class="btn btn-secondary">Abbrechen</a>
+      <button type="submit" class="btn btn-primary">{{ t("admin.survey.save") }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-select matching questionnaire when type changes
+const typeMap = {
+  'eltern_kl4': 'eltern_kl4',
+  'kinder_kl4': 'kinder_kl4'
+};
+document.getElementById('survey-type-sel').addEventListener('change', function() {
+  const qSel = document.querySelector('select[name=questionnaire_id]');
+  const target = typeMap[this.value];
+  for (const opt of qSel.options) {
+    if (opt.value === target) { qSel.value = target; break; }
+  }
+});
+</script>
+{% endblock %}

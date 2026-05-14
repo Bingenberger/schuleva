@@ -1,0 +1,252 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Geführter Modus – {{ t("app.title") }}{% endblock %}
+
+{% block content %}
+<div id="app" class="guided-app">
+
+  <!-- ─── LOBBY ─────────────────────────────────────────────────────────────── -->
+  <div id="phase-lobby" class="guided-phase">
+    <div class="guided-lobby">
+
+      <div class="guided-lobby-qr">
+        <img src="/admin/guided/{{ session.session_id }}/qr.png" alt="QR-Code" class="guided-qr-img">
+        <div class="guided-session-code">{{ session.session_id }}</div>
+        <div class="guided-session-url" id="student-url">…</div>
+      </div>
+
+      <div class="guided-lobby-info">
+        <div class="guided-survey-name">{{ session.questionnaire.title }}</div>
+        <div class="guided-class-badge">Klasse {{ session.class_name }}</div>
+
+        <div class="guided-connect-hint">
+          <p>Kinder scannen den QR-Code oder rufen die Adresse im Browser auf.</p>
+        </div>
+
+        <div class="guided-student-counter" id="student-counter">
+          <span class="counter-icon">👥</span>
+          <span id="counter-num">0</span>
+          <span>Kinder verbunden</span>
+        </div>
+
+        <div class="guided-lobby-actions">
+          <button class="btn btn-primary btn-lg" id="btn-start" onclick="sendCmd('start')" disabled>
+            Befragung starten →
+          </button>
+          <p class="guided-hint" id="start-hint">Warte auf verbundene Kinder …</p>
+        </div>
+
+        <div class="guided-meta">
+          <span>{{ session.questions|length }} Fragen</span>
+          <span>·</span>
+          <a href="/admin/survey/{{ session.survey_id }}" class="guided-back-link">← Zurück zur Befragung</a>
+        </div>
+      </div>
+    </div>
+  </div><!-- /phase-lobby -->
+
+  <!-- ─── SURVEY ────────────────────────────────────────────────────────────── -->
+  <div id="phase-survey" class="guided-phase" style="display:none;">
+
+    <!-- Progress bar -->
+    <div class="guided-progress-bar">
+      <div class="guided-progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <!-- Top bar -->
+    <div class="guided-top-bar">
+      <div class="guided-top-left">
+        <span class="guided-section-label" id="section-label"></span>
+        <span class="guided-q-counter" id="q-counter">Frage 1 von …</span>
+      </div>
+      <div class="guided-top-right">
+        <span class="guided-students-pill" id="students-pill">
+          👥 <span id="top-student-count">0</span>
+        </span>
+        <span class="guided-answered-pill" id="answered-pill">
+          ✓ <span id="answered-count">0</span>/<span id="answered-total">0</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Question display (for screen sharing) -->
+    <div class="guided-question-wrap">
+      <div class="guided-question-text" id="question-text">…</div>
+      <div class="guided-scale-display" id="scale-display"></div>
+    </div>
+
+    <!-- Control bar (teacher only) -->
+    <div class="guided-control-bar">
+      <button class="btn btn-secondary" id="btn-prev" onclick="sendCmd('prev')" disabled>← Zurück</button>
+
+      <div class="guided-unlock-area">
+        <button class="btn btn-unlock" id="btn-unlock" onclick="sendCmd('unlock')">
+          🔓 Antworten freischalten
+        </button>
+        <div class="guided-unlocked-msg" id="unlocked-msg" style="display:none">
+          ✓ Antworten freigeschaltet
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-next" onclick="sendCmd('next')" disabled>
+        Nächste Frage →
+      </button>
+    </div>
+
+    <!-- End session -->
+    <div class="guided-end-bar">
+      <button class="btn btn-secondary btn-sm" id="btn-end"
+              onclick="if(confirm('Befragung jetzt beenden und Antworten speichern?')) sendCmd('end')">
+        Befragung beenden
+      </button>
+    </div>
+
+  </div><!-- /phase-survey -->
+
+  <!-- ─── ENDED ─────────────────────────────────────────────────────────────── -->
+  <div id="phase-ended" class="guided-phase" style="display:none;">
+    <div class="guided-ended-box">
+      <div class="guided-ended-icon">✓</div>
+      <h2>Befragung abgeschlossen</h2>
+      <p id="saved-count" class="guided-saved-msg"></p>
+      <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+        <a href="/admin/survey/{{ session.survey_id }}" class="btn btn-secondary">← Zur Befragung</a>
+        <a href="/admin/survey/{{ session.survey_id }}/results" class="btn btn-primary">Auswertung öffnen</a>
+      </div>
+    </div>
+  </div><!-- /phase-ended -->
+
+  <!-- Connection indicator -->
+  <div class="guided-ws-status" id="ws-status">⏳ Verbinde …</div>
+
+</div><!-- /app -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+'use strict';
+const SESSION_ID = {{ session.session_id | tojson }};
+const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/guided/${SESSION_ID}/teacher`;
+
+let ws = null;
+let currentState = null;
+let reconnectTimer = null;
+
+// ── WebSocket connection ───────────────────────────────────────────────────────
+function connect() {
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    clearTimeout(reconnectTimer);
+    setStatus('connected', '● Verbunden');
+  };
+
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+    handleMsg(msg);
+  };
+
+  ws.onclose = () => {
+    setStatus('disconnected', '○ Verbindung unterbrochen – verbinde neu …');
+    reconnectTimer = setTimeout(connect, 2000);
+  };
+
+  ws.onerror = () => ws.close();
+}
+
+function sendCmd(type) {
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type }));
+}
+
+// ── Message handler ───────────────────────────────────────────────────────────
+function handleMsg(msg) {
+  switch (msg.type) {
+    case 'state':        currentState = msg; applyState(msg); break;
+    case 'student_count': applyStudentCount(msg.count); break;
+    case 'answer_progress': applyProgress(msg.answered, msg.total); break;
+    case 'session_ended': showPhase('ended'); document.getElementById('saved-count').textContent =
+        `${msg.saved} Antwortbogen${msg.saved !== 1 ? 'bögen' : ''} wurden gespeichert.`; break;
+  }
+}
+
+function applyState(s) {
+  showPhase(s.phase);
+  if (s.phase === 'lobby') {
+    applyStudentCount(s.student_count);
+  } else if (s.phase === 'survey') {
+    renderQuestion(s);
+    applyStudentCount(s.student_count);
+    applyProgress(s.answered, s.student_count);
+  }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderQuestion(s) {
+  const q     = s.question;
+  const total = s.total;
+  const idx   = s.q_idx;
+
+  document.getElementById('section-label').textContent = q._section_title || '';
+  document.getElementById('q-counter').textContent = `Frage ${idx + 1} von ${total}`;
+  document.getElementById('question-text').textContent = q.text;
+
+  const pct = ((idx) / total) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  // Scale / options display
+  const scaleEl = document.getElementById('scale-display');
+  scaleEl.innerHTML = '';
+  const opts = q.type === 'scale'
+    ? (s.scale.options || [])
+    : (q.options || []);
+  opts.forEach((opt, i) => {
+    const span = document.createElement('span');
+    span.className = 'guided-scale-option' + (q.type === 'scale' ? ` guided-scale-opt-${i}` : '');
+    span.textContent = opt.label;
+    scaleEl.appendChild(span);
+  });
+
+  // Buttons
+  const unlocked = s.unlocked;
+  document.getElementById('btn-prev').disabled = idx === 0;
+  document.getElementById('btn-unlock').style.display = unlocked ? 'none' : '';
+  document.getElementById('unlocked-msg').style.display = unlocked ? '' : 'none';
+  document.getElementById('btn-next').disabled = !unlocked;
+}
+
+function applyStudentCount(n) {
+  document.getElementById('counter-num').textContent = n;
+  document.getElementById('top-student-count').textContent = n;
+  const btnStart = document.getElementById('btn-start');
+  const hint = document.getElementById('start-hint');
+  btnStart.disabled = n === 0;
+  hint.textContent = n === 0 ? 'Warte auf verbundene Kinder …'
+    : `${n} ${n === 1 ? 'Kind' : 'Kinder'} verbunden – Befragung kann starten.`;
+}
+
+function applyProgress(answered, total) {
+  document.getElementById('answered-count').textContent = answered;
+  document.getElementById('answered-total').textContent = total;
+  // Enable "next" when at least 1 person answered (or all)
+  const btn = document.getElementById('btn-next');
+  if (currentState && currentState.unlocked) btn.disabled = false;
+}
+
+function showPhase(phase) {
+  ['lobby', 'survey', 'ended'].forEach(p => {
+    document.getElementById(`phase-${p}`).style.display = p === phase ? '' : 'none';
+  });
+}
+
+function setStatus(cls, text) {
+  const el = document.getElementById('ws-status');
+  el.textContent = text;
+  el.className = `guided-ws-status ws-${cls}`;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.getElementById('student-url').textContent =
+  `${location.origin}/guided/${SESSION_ID}`;
+
+connect();
+</script>
+{% endblock %}

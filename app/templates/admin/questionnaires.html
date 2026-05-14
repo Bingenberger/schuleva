@@ -1,0 +1,62 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Fragebogen-Vorlagen – {{ t("app.title") }}{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+  <h2>Fragebogen-Vorlagen</h2>
+  <div style="display:flex;gap:0.5rem;">
+    <a href="/admin/questionnaire/new" class="btn btn-primary">Neu anlegen / Importieren</a>
+  </div>
+</div>
+
+{% if items %}
+<div class="table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Titel</th>
+        <th>Abschnitte</th>
+        <th>Fragen</th>
+        <th>Befragungen</th>
+        <th>Aktionen</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td><code>{{ item.id }}</code></td>
+        <td>{{ item.title }}</td>
+        <td>{{ item.n_sections }}</td>
+        <td>{{ item.n_questions }}</td>
+        <td>
+          {% if item.usage > 0 %}
+          <span class="badge badge-active">{{ item.usage }}x verwendet</span>
+          {% else %}
+          <span class="badge badge-closed">Unbenutzt</span>
+          {% endif %}
+        </td>
+        <td class="action-cell">
+          <a href="/admin/questionnaire/{{ item.id }}/edit" class="btn btn-sm btn-secondary">Bearbeiten</a>
+          <a href="/admin/questionnaire/{{ item.id }}/download" class="btn btn-sm btn-secondary">JSON ↓</a>
+          {% if item.usage == 0 %}
+          <form method="post" action="/admin/questionnaire/{{ item.id }}/delete" style="display:inline"
+                onsubmit="return confirm('Fragebogen \'{{ item.id }}\' wirklich löschen?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf }}">
+            <button type="submit" class="btn btn-sm btn-danger">Löschen</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="empty-state">Keine Fragebogen-Vorlagen gefunden.</p>
+{% endif %}
+
+<p style="margin-top:1rem;font-size:0.9rem;color:var(--color-muted);">
+  Vorlagen werden als JSON-Dateien unter <code>surveys/</code> gespeichert.
+</p>
+{% endblock %}

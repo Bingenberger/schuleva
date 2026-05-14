@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ t("admin.login.headline") }} – {{ t("app.title") }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="admin-body login-body">
+<div class="login-container">
+  <h1>{{ t("admin.login.headline") }}</h1>
+  <p class="login-subtitle">{{ t("app.title") }}</p>
+
+  {% if error %}
+  <div class="error-banner">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="/admin/login" class="login-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+
+    <label for="username" class="field-label">{{ t("admin.login.username") }}</label>
+    <input type="text" id="username" name="username" class="field-input" autocomplete="username" autofocus required>
+
+    <label for="password" class="field-label">{{ t("admin.login.password") }}</label>
+    <input type="password" id="password" name="password" class="field-input" autocomplete="current-password" required>
+
+    <button type="submit" class="btn btn-primary btn-large btn-full">{{ t("admin.login.submit") }}</button>
+  </form>
+</div>
+</body>
+</html>
