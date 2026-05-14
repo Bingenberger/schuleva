@@ -1447,13 +1447,14 @@ a:hover { text-decoration: underline; }
 }
 .guided-student-textarea {
   width: 100%;
-  min-height: 7rem;
-  padding: 0.75rem;
+  min-height: 14rem;
+  padding: 1rem;
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
-  font-size: 1rem;
+  font-size: 1.1rem;   /* mind. 16px verhindert Auto-Zoom auf iOS */
   font-family: inherit;
-  resize: vertical;
+  line-height: 1.6;
+  resize: none;
   background: var(--color-bg);
   color: var(--color-text);
   box-sizing: border-box;
@@ -1465,7 +1466,12 @@ a:hover { text-decoration: underline; }
 .guided-student-text-actions {
   display: flex;
   gap: 0.5rem;
-  justify-content: flex-end;
+  justify-content: stretch;
+}
+.guided-student-text-actions .btn {
+  flex: 1;
+  font-size: 1.1rem;
+  padding: 0.75rem;
 }
 .guided-text-q-note {
   font-size: 0.9rem;
