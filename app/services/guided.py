@@ -15,9 +15,10 @@ def _gen_code(n: int = 6) -> str:
 
 @dataclass
 class StudentConn:
-    ws: Any                                       # WebSocket
+    ws: Any                                       # WebSocket; None when disconnected
     answers: dict[str, str] = field(default_factory=dict)
     answered_current: bool = False
+    saved: bool = False                           # True once answers are written to DB
 
 
 @dataclass

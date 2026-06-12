@@ -5,6 +5,7 @@ import json
 import secrets
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import qrcode
 from fastapi import APIRouter, Form, HTTPException, Request, WebSocket, WebSocketDisconnect
@@ -160,8 +161,22 @@ async def student_ws_endpoint(ws: WebSocket, session_id: str):
     except (WebSocketDisconnect, RuntimeError):
         pass
     finally:
-        session.students.pop(student_id, None)
-        await _notify_teacher(session, {"type": "student_count", "count": len(session.students)})
+        student = session.students.get(student_id)
+        if student:
+            student.ws = None
+            # Persist immediately so answers survive a server crash
+            if session.phase != "ended" and not student.saved:
+                now = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0).isoformat()
+                db = get_db()
+                try:
+                    if _persist_student(session, student, db, now):
+                        db.commit()
+                except Exception:
+                    pass
+                finally:
+                    db.close()
+        active = sum(1 for s in session.students.values() if s.ws is not None)
+        await _notify_teacher(session, {"type": "student_count", "count": active})
 
 
 # ── Teacher message handler ───────────────────────────────────────────────────
@@ -230,11 +245,12 @@ async def _handle_student_msg(
         student.answers[q_id] = value
     student.answered_current = True
 
-    answered = sum(1 for s in session.students.values() if s.answered_current)
+    active = [s for s in session.students.values() if s.ws is not None]
+    answered = sum(1 for s in active if s.answered_current)
     await _notify_teacher(session, {
         "type": "answer_progress",
         "answered": answered,
-        "total": len(session.students),
+        "total": len(active),
     })
     try:
         await student.ws.send_json({"type": "answer_received", "q_id": q_id})
@@ -244,6 +260,19 @@ async def _handle_student_msg(
 
 # ── End session & save ────────────────────────────────────────────────────────
 
+def _persist_student(session: GuidedSession, student: StudentConn, db: Any, now: str) -> bool:
+    """Write one student's answers to DB. Returns True if a row was inserted."""
+    if not student.answers or student.saved:
+        return False
+    db.execute(
+        "INSERT INTO responses (survey_id, class_name, submitted_at, payload_json)"
+        " VALUES (?, ?, ?, ?)",
+        (session.survey_id, session.class_name, now, json.dumps(student.answers)),
+    )
+    student.saved = True
+    return True
+
+
 async def _end_session(session: GuidedSession) -> None:
     session.phase = "ended"
 
@@ -252,12 +281,7 @@ async def _end_session(session: GuidedSession) -> None:
     now = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0).isoformat()
     try:
         for student in session.students.values():
-            if student.answers:
-                db.execute(
-                    "INSERT INTO responses (survey_id, class_name, submitted_at, payload_json)"
-                    " VALUES (?, ?, ?, ?)",
-                    (session.survey_id, session.class_name, now, json.dumps(student.answers)),
-                )
+            if _persist_student(session, student, db, now):
                 saved += 1
         db.commit()
     finally:
@@ -276,7 +300,8 @@ def _reset_answered(session: GuidedSession) -> None:
 
 def _teacher_state(session: GuidedSession) -> dict:
     q = session.questions[session.q_idx] if session.questions else None
-    answered = sum(1 for s in session.students.values() if s.answered_current)
+    active = [s for s in session.students.values() if s.ws is not None]
+    answered = sum(1 for s in active if s.answered_current)
     return {
         "type": "state",
         "phase": session.phase,
@@ -285,7 +310,7 @@ def _teacher_state(session: GuidedSession) -> dict:
         "question": q,
         "scale": session.scale,
         "unlocked": session.unlocked,
-        "student_count": len(session.students),
+        "student_count": len(active),
         "answered": answered,
     }
 
@@ -304,7 +329,7 @@ def _question_msg(session: GuidedSession) -> dict:
 
 async def _send_student_state(session: GuidedSession, student_id: str) -> None:
     student = session.students.get(student_id)
-    if student is None:
+    if student is None or student.ws is None:
         return
     if session.phase == "lobby":
         msg: dict = {"type": "waiting"}
@@ -328,14 +353,13 @@ async def _send_student_state(session: GuidedSession, student_id: str) -> None:
 
 
 async def _broadcast_students(session: GuidedSession, msg: dict) -> None:
-    dead: list[str] = []
-    for sid, student in list(session.students.items()):
+    for student in list(session.students.values()):
+        if student.ws is None:
+            continue
         try:
             await student.ws.send_json(msg)
         except Exception:
-            dead.append(sid)
-    for sid in dead:
-        session.students.pop(sid, None)
+            student.ws = None  # keep answers, just mark as disconnected
 
 
 async def _notify_teacher(session: GuidedSession, msg: dict) -> None:

@@ -1626,8 +1626,8 @@ a:hover { text-decoration: underline; }
   transition: width 0.4s ease;
 }
 .pub-bar-pct { color: #fff; font-size: 0.75rem; font-weight: 600; }
-.pub-bar-count { width: 2.5rem; text-align: right; color: var(--color-muted); font-size: 0.85rem; }
-.pub-n { font-size: 0.8rem; color: var(--color-muted); margin-top: 0.4rem; }
+.pub-bar-count { width: 2.5rem; text-align: right; color: #c4c9d4; font-size: 0.68rem; }
+.pub-n { font-size: 0.68rem; color: #c4c9d4; margin-top: 0.2rem; }
 .pub-freitext-list {
   list-style: disc;
   padding-left: 1.25rem;

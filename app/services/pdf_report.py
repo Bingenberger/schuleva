@@ -44,7 +44,7 @@ def _chart_b64(question: dict[str, Any]) -> str:
     ax.set_yticklabels(labels, fontsize=9)
     ax.set_xlim(0, 110)
     ax.xaxis.set_major_formatter(mticker.PercentFormatter())
-    ax.set_title(f"n={total}", fontsize=8, loc="right", pad=4)
+    ax.set_title(f"n={total}", fontsize=6.5, loc="right", pad=4, color="#bbbbbb")
     ax.spines[["top", "right"]].set_visible(False)
     plt.tight_layout()
 
@@ -123,7 +123,7 @@ def generate_report_pdf_bytes(
   .question {{ margin-bottom: 6mm; page-break-inside: avoid; }}
   .q-text {{ font-weight: bold; margin-bottom: 2mm; }}
   .chart {{ max-width: 100%; }}
-  .n-total {{ font-size: 8pt; color: #666; }}
+  .n-total {{ font-size: 6.5pt; color: #bbb; }}
   .freitext-list {{ padding-left: 5mm; }}
   .freitext-list li {{ margin-bottom: 2mm; }}
 </style>
