@@ -115,7 +115,8 @@ async def results_pdf(request: Request, survey_id: int, class_name: str | None =
     require_login(request)
     survey, questionnaire = _get_survey_and_questionnaire(survey_id)
 
-    eval_result = evaluate_survey(survey_id, questionnaire, class_name)
+    anon_names = json.loads(survey["anon_names"] or "[]")
+    eval_result = evaluate_survey(survey_id, questionnaire, class_name, anon_names)
     filter_label = class_name if class_name else "Schule gesamt"
     period = f"{survey['starts_at'][:10]} – {survey['ends_at'][:10]}"
 
