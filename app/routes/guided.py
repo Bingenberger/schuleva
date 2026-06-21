@@ -408,7 +408,8 @@ async def public_results(request: Request, token: str, class_name: str | None = 
         raise HTTPException(404)
     questionnaire = json.loads(q_path.read_text(encoding="utf-8"))
 
-    eval_result = evaluate_survey(survey["id"], questionnaire, active_class)
+    anon_names = json.loads(survey["anon_names"] or "[]")
+    eval_result = evaluate_survey(survey["id"], questionnaire, active_class, anon_names)
 
     if grant["scope"] == "all":
         filter_label = class_name if class_name else "Schule gesamt"

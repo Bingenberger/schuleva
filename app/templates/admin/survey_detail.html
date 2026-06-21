@@ -188,6 +188,21 @@
   </form>
   {% endif %}
 </section>
+
+<section class="admin-section">
+  <h3>Anonymisierung (Freitextantworten)</h3>
+  <p class="field-hint">
+    Namen, die in freigegebenen Ergebnissen durch <strong>[Name]</strong> ersetzt werden sollen –
+    einen Namen pro Zeile. Im Admin-Bereich bleiben die Originaltexte sichtbar.
+  </p>
+  <form method="post" action="/admin/survey/{{ survey.id }}/anon-names">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    {% set anon_list = survey.anon_names | default('[]') | fromjson %}
+    <textarea name="names" class="field-input anon-names-textarea"
+              placeholder="z.B.&#10;Müller&#10;Schmidt">{{ anon_list | join('\n') }}</textarea>
+    <button type="submit" class="btn btn-primary" style="margin-top:0.5rem">Speichern</button>
+  </form>
+</section>
 {% endif %}
 {% endif %}
 {% endblock %}

@@ -1,6 +1,8 @@
 from __future__ import annotations
+import difflib
 import json
 import random
+import re
 from typing import Any
 
 from app.db import get_db
@@ -49,12 +51,37 @@ def aggregate_question(
     }
 
 
+_FUZZY_CUTOFF = 0.80   # Ähnlichkeit 0–1; 0.80 ≈ 1–2 Tippfehler bei typischen Nachnamen
+_MIN_WORD_LEN = 4      # Kürzere Wörter nicht fuzzy prüfen (zu viele Fehlalarme)
+
+
+def _anonymize(text: str, names: list[str]) -> str:
+    clean = [n.lower() for n in names if n]
+    if not clean:
+        return text
+
+    def _replace(word: str) -> str:
+        w = word.lower()
+        # Kurze Wörter nur exakt prüfen
+        if len(w) < _MIN_WORD_LEN:
+            return "[Name]" if w in clean else word
+        matches = difflib.get_close_matches(w, clean, n=1, cutoff=_FUZZY_CUTOFF)
+        return "[Name]" if matches else word
+
+    # Wörter und Trennzeichen getrennt verarbeiten, damit Satzzeichen erhalten bleiben
+    tokens = re.split(r"(\W+)", text)
+    return "".join(_replace(t) if re.match(r"\w+", t) else t for t in tokens)
+
+
 def collect_freitext(
     responses: list[dict[str, Any]],
     question_id: str,
+    anon_names: list[str] | None = None,
 ) -> list[str]:
     texts = [resp[question_id] for resp in responses if resp.get(question_id)]
     random.shuffle(texts)
+    if anon_names:
+        texts = [_anonymize(t, anon_names) for t in texts]
     return texts
 
 
@@ -62,6 +89,7 @@ def evaluate_survey(
     survey_id: int,
     questionnaire: dict[str, Any],
     class_name: str | None,
+    anon_names: list[str] | None = None,
 ) -> dict[str, Any]:
     responses = _load_responses(survey_id, class_name)
     scale_options = questionnaire.get("scale", {}).get("options", [])
@@ -103,7 +131,7 @@ def evaluate_survey(
                     "id": qid,
                     "type": qtype,
                     "text": q["text"],
-                    "freitexte": collect_freitext(responses, qid),
+                    "freitexte": collect_freitext(responses, qid, anon_names),
                 })
 
         result["sections"].append(sec_result)

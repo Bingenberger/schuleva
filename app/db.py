@@ -118,7 +118,13 @@ def migrate_db() -> None:
             """)
             conn.commit()
 
-        # 2. Create share_grants table if missing (replaces surveys.share_token)
+        # 2. Add anon_names column to surveys if missing
+        cols = {r["name"] for r in conn.execute("PRAGMA table_info(surveys)")}
+        if "anon_names" not in cols:
+            conn.execute("ALTER TABLE surveys ADD COLUMN anon_names TEXT NOT NULL DEFAULT '[]'")
+            conn.commit()
+
+        # 3. Create share_grants table if missing (replaces surveys.share_token)
         tables = {r["name"] for r in conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table'"
         )}

@@ -25,6 +25,7 @@ router = APIRouter(prefix="/admin")
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.globals["t"] = t
+templates.env.filters["fromjson"] = json.loads
 
 SURVEYS_DIR = Path(__file__).parent.parent.parent / "surveys"
 
@@ -335,6 +336,30 @@ async def close_survey(
     try:
         conn.execute(
             "UPDATE surveys SET status = 'closed' WHERE id = ?", (survey_id,)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    return RedirectResponse(f"/admin/survey/{survey_id}", status_code=303)
+
+
+@router.post("/survey/{survey_id}/anon-names")
+async def update_anon_names(
+    request: Request,
+    survey_id: int,
+    names: str = Form(""),
+    csrf_token: str = Form(...),
+):
+    require_admin(request)
+    validate_csrf(request, csrf_token)
+
+    name_list = [n.strip() for n in names.splitlines() if n.strip()]
+    conn = get_db()
+    try:
+        conn.execute(
+            "UPDATE surveys SET anon_names = ? WHERE id = ?",
+            (json.dumps(name_list, ensure_ascii=False), survey_id),
         )
         conn.commit()
     finally:

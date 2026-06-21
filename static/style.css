@@ -108,6 +108,7 @@ a:hover { text-decoration: underline; }
 }
 .field-input-sm, .field-select-sm { width: auto; }
 .field-hint { font-size: 0.875rem; color: var(--color-muted); align-self: center; }
+.anon-names-textarea { min-height: 7rem; resize: vertical; font-family: monospace; font-size: 0.9rem; }
 
 .field-row {
   display: flex;
