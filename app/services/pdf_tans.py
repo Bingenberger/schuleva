@@ -5,7 +5,9 @@ import qrcode
 import base64
 from typing import Any
 
-SCHOOL_DOMAIN = os.getenv("SCHOOL_DOMAIN", "befragung.meine-schule.de")
+from app.settings import public_scheme, school_domain
+
+SCHOOL_DOMAIN = school_domain()
 SCHOOL_LOGO = os.getenv("SCHOOL_LOGO", "")
 
 
@@ -22,7 +24,7 @@ CARDS_PER_PAGE = CARDS_PER_ROW * ROWS_PER_PAGE
 
 
 def _card_html(cls: str, tan: str, survey_title: str) -> str:
-    url = f"https://{SCHOOL_DOMAIN}/start#{tan}"
+    url = f"{public_scheme()}://{SCHOOL_DOMAIN}/start#{tan}"
     qr_b64 = _qr_png_b64(url)
     return f"""<div class="card">
   <div class="card-header">

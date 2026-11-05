@@ -20,7 +20,7 @@ from app.services.pdf_report import generate_report_pdf_bytes
 
 router = APIRouter(prefix="/admin")
 
-SURVEYS_DIR = Path(__file__).parent.parent.parent / "surveys"
+from app.settings import SURVEYS_DIR  # noqa: E402  (im Container im Datenvolume)
 
 
 def _load_questionnaire(qid: str) -> dict[str, Any]:

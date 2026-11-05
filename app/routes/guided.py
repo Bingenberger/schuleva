@@ -20,7 +20,7 @@ from app.services.guided import GuidedSession, StudentConn, create_session, get_
 
 router = APIRouter()
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
-SURVEYS_DIR = Path(__file__).parent.parent.parent / "surveys"
+from app.settings import SURVEYS_DIR  # noqa: E402  (im Container im Datenvolume)
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.globals["t"] = t

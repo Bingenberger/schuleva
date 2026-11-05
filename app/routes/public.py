@@ -22,7 +22,7 @@ TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.globals["t"] = t
 
-SURVEYS_DIR = Path(__file__).parent.parent.parent / "surveys"
+from app.settings import SURVEYS_DIR  # noqa: E402  (im Container im Datenvolume)
 
 # Rate limiting: {ip: [timestamps]}
 _rate_store: dict[str, list[float]] = defaultdict(list)

@@ -195,6 +195,12 @@ python3 -c "import secrets; print(secrets.token_hex(32))"
 
 ## 6. Installationsanleitung
 
+> **Schulplattform:** In der Schulplattform läuft die App als Container; Domain, Zertifikat,
+> Sicherung und Migration übernimmt die Plattform, das erste Schulleitungskonto legt
+> `./install.sh app-setup schuleva` an. Siehe [PLATFORM.md](PLATFORM.md). Die folgende
+> Anleitung beschreibt den Betrieb ohne Plattform; dort vor dem Start einmal
+> `.venv/bin/python -m app.migrate` ausführen.
+
 ### 6.1 Systemvoraussetzungen
 
 - Ubuntu 22.04 LTS oder neuer (oder vergleichbare Debian-basierte Distribution)

@@ -1,0 +1,35 @@
+services:
+  app:
+    build: {context: ., target: final}
+    image: schuleva:0.1.0-dev
+    user: "10001:10001"
+    init: true
+    stop_grace_period: 30s
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:size=128m,mode=1777"]
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
+    environment:
+      SECRET_KEY_FILE: /run/secrets/session-key
+      DATABASE_PATH: /data/db.sqlite
+      SURVEYS_DIR: /data/surveys
+      BASE_URL: ${BASE_URL:-http://localhost:5007}
+      PROXY_IPS: ${PROXY_IPS:-}
+      DSGVO_HINWEIS: ${DSGVO_HINWEIS:-Diese Befragung ist vollständig anonym. Es werden keine personenbezogenen Daten gespeichert.}
+    volumes:
+      - data:/data
+      - ${SCHULEVA_SECRET_FILE:?Datei mit mindestens 32 zufälligen Zeichen angeben}:/run/secrets/session-key:ro
+    ports: ["127.0.0.1:${SCHULEVA_PORT:-5007}:8000"]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+volumes:
+  data:

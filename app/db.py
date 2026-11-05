@@ -73,11 +73,34 @@ CREATE INDEX IF NOT EXISTS idx_share_grants_survey ON share_grants(survey_id);
 """
 
 
+SCHEMA_VERSION = 1
+EXPECTED_TABLES = {"schema_version", "users", "surveys", "classes", "tans", "responses", "share_grants"}
+
+
+def schema_ready() -> bool:
+    """Stand 1 eingetragen und alle erwarteten Tabellen vorhanden; baut nichts auf."""
+    path = _db_path()
+    if path != ":memory:" and not Path(path).exists():
+        return False
+    conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True) if path != ":memory:" else sqlite3.connect(path)
+    try:
+        tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if not EXPECTED_TABLES <= tables:
+            return False
+        version = conn.execute("SELECT max(version) FROM schema_version").fetchone()[0]
+        columns = {r[1] for r in conn.execute("PRAGMA table_info(surveys)")}
+        return version == SCHEMA_VERSION and "anon_names" in columns
+    except sqlite3.Error:
+        return False
+    finally:
+        conn.close()
+
+
 def get_db() -> sqlite3.Connection:
     path = _db_path()
     if path != ":memory:":
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path)
+    conn = sqlite3.connect(path, timeout=10)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")

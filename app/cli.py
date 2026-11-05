@@ -10,10 +10,11 @@ load_dotenv()
 
 
 def create_admin() -> None:
-    from app.db import init_db, get_db
+    from app.db import get_db, schema_ready
     from app.auth import create_admin_user
 
-    init_db()
+    if not schema_ready():
+        sys.exit("Datenbank nicht migriert – zuerst 'python -m app.migrate' ausführen.")
 
     conn = get_db()
     try:
